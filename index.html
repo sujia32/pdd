@@ -8,7 +8,23 @@
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
         header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
-        .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+        .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
+        
+        /* 🎨 新增的粉色横幅内的配件说明标签样式 */
+        .notice-box { 
+            display: inline-block; 
+            background: rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px; 
+            padding: 8px 16px; 
+            font-size: 13px; 
+            text-align: left; 
+            line-height: 1.6;
+            margin: 5px auto 0 auto;
+            max-width: 400px;
+        }
+        .notice-line { display: flex; align-items: center; gap: 6px; }
+
         .admin-login-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
         .admin-login-btn:hover { background: rgba(255,255,255,0.4); }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
@@ -46,6 +62,13 @@
     <header>
         <h1>✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
+        
+        <!-- 📢 新增的说明区块（正好对应 image_3ce8e4.png 里的红色方框位置） -->
+        <div class="notice-box">
+            <div class="notice-line">⚪ <b>无豆子版本：</b> 只有底板</div>
+            <div class="notice-line">🟢 <b>有豆子版本：</b> 底板 + 豆子 + 锤子 + 取豆器</div>
+        </div>
+
         <button class="admin-login-btn" onclick="loginAdmin()">⚙️ 商家后台</button>
     </header>
 
@@ -55,7 +78,7 @@
             <div class="admin-title">🛠️ GitHub 安全实时同步面板 (双版本价格版)</div>
             <div class="form-grid" style="border-bottom: 1px dashed #eee; padding-bottom: 15px; margin-bottom: 15px;">
                 <div class="form-group" style="grid-column: 1/-1;"><label style="color:#ff4757;">🔑 核心安全验证：请填入您的真实 GitHub Token (ghp_开头的那个)</label>
-                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙"></div>
+                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙，代码中不留痕迹，绝对安全"></div>
             </div>
             <div class="form-grid">
                 <div class="form-group"><label>1. 上传图片</label><input type="file" id="prod-img" accept="image/*"></div>
@@ -167,7 +190,6 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 
-                // 兼容老数据（如果以前的数据没有分版本价格，则默认显示在有豆子版本上）
                 const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
                 const displayNo = prod.priceNo ? prod.priceNo : "0.00";
 
@@ -202,7 +224,7 @@
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
-            const bodyData = { message: "Secure update via dashboard with dual prices", content: base64Content };
+            const bodyData = { message: "Secure update via dashboard with dual prices and headers", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -214,7 +236,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ GitHub 保存成功！双版本价格已实时同步云端！\n\n稍等1分钟左右重新打开链接即可看到效果。");
+                    alert("⚡ GitHub 保存成功！新版界面已提交！\n\n稍等1分钟左右重新打开链接即可看到效果。");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
