@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼豆定制作品选款与价格公示表</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
+        header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+        .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; }
+        
+        /* 商家登录按钮 */
+        .admin-login-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .admin-login-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
+        
+        /* 隐藏的控制后台，只有登录后才显示 */
+        #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 2px dashed #ee5253; }
+        .admin-title { font-size: 16px; font-weight: bold; color: #ee5253; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 12px; color: #666; font-weight: bold; }
+        input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+        
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-add { background-color: #ee5253; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-export { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-import { background-color: #17a2b8; color: white; border: none; cursor: pointer; font-weight: bold; }
+        
+        /* 客户看到的商品网格布局 */
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        @media (min-width: 600px) { .template-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; } }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
+        .card:hover { transform: translateY(-3px); }
+        .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
+        .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
+        .card-size { font-size: 12px; color: #888; margin-top: 2px; }
+        .card-price-row { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1px solid #f6f6f6; }
+        .card-price { font-size: 18px; font-weight: bold; color: #ff4757; }
+        .card-price::before { content: "￥"; font-size: 12px; }
+        
+        /* 仅在管理员模式下显示的删除按钮 */
+        .btn-delete { display: none; position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; justify-content: center; align-items: center; font-size: 12px; z-index: 10; }
+        #file-input-hidden { display: none; }
+        .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>✨ 拼豆定制选款与价格公示表 ✨</h1>
+        <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
+        <!-- 右上角隐藏的登录入口 -->
+        <button class="admin-login-btn" onclick="loginAdmin()">⚙️ 商家管理</button>
+    </header>
+
+    <div class="container">
+        
+        <!-- 商家管理后台（默认隐藏，登录后显示） -->
+        <div id="admin-panel">
+            <div class="admin-title">🛠️ 拼豆商品后台管理</div>
+            <div class="form-grid">
+                <div class="form-group"><label>1. 上传图片</label><input type="file" id="prod-img" accept="image/*"></div>
+                <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
+                <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
+                <div class="form-group"><label>4. 价格 (元)</label><input type="number" id="prod-price" placeholder="0.00" step="0.01"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn-add" onclick="addProduct()">➕ 确认添加商品</button>
+                <button class="btn-export" onclick="exportData()">💾 导出新数据文件(用来更新网页)</button>
+                <button class="btn-import" onclick="triggerImport()">📂 导入旧数据文件(编辑用)</button>
+                <input type="file" id="file-input-hidden" accept=".txt" onchange="importData(event)">
+            </div>
+            <p style="font-size: 11px; color: #999; margin: 10px 0 0 0;">
+                💡 商家更新流程：先点击“导入”你电脑里的老数据文件 -> 在页面上添加新商品或删除旧商品 -> 点击“导出”得到新数据文件 -> 用记事本打开新文件，把数据复制并替换到代码最下方的变量里，重新上传GitHub即可！
+            </p>
+        </div>
+
+        <!-- 客户直接看区域 -->
+        <div class="template-grid" id="view-container"></div>
+
+    </div>
+
+    <script>
+        // =========================================================================
+        // 🛠️ 商家自定义配置区域
+        // =========================================================================
+        const ADMIN_PASSWORD = "123"; // 👈 商家登录密码（你可以自己改成好记的）
+
+        // 👇 请把你导出的长串数据粘贴在下面的两个单引号中间。如果一开始没有商品，留空 '' 即可。
+        const myProductsData = ''; 
+        // =========================================================================
+
+        let productList = [];
+        let currentBase64Img = "";
+        let isAdminMode = false;
+
+        // 页面启动自动加载
+        window.onload = function() {
+            if (myProductsData.trim() !== '') {
+                try {
+                    productList = JSON.parse(myProductsData);
+                    renderProducts();
+                } catch(e) {
+                    console.error("初始数据解析失败");
+                }
+            } else {
+                renderProducts();
+            }
+        };
+
+        // 商家登录逻辑
+        function loginAdmin() {
+            const pass = prompt("请输入商家管理密码：");
+            if (pass === ADMIN_PASSWORD) {
+                isAdminMode = true;
+                document.getElementById('admin-panel').style.display = 'block';
+                // 显示所有商品的删除按钮
+                const delBtns = document.querySelectorAll('.btn-delete');
+                delBtns.forEach(btn => btn.style.display = 'flex');
+                alert("登录成功！已开启商家编辑模式。");
+            } else if (pass !== null) {
+                alert("密码错误，拒绝访问！");
+            }
+        }
+
+        // 监听图片转换为Base64
+        document.getElementById('prod-img').addEventListener('change', function(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) { currentBase64Img = event.target.result; };
+            reader.readAsDataURL(file);
+        });
+
+        // 添加商品
+        function addProduct() {
+            const name = document.getElementById('prod-name').value.trim();
+            const size = document.getElementById('prod-size').value.trim();
+            const price = document.getElementById('prod-price').value.trim();
+            if (!currentBase64Img || !name || !size || !price) { alert("请把图片和信息填完整！"); return; }
+            
+            productList.push({
+                id: Date.now(), name: name, size: size, price: parseFloat(price).toFixed(2), image: currentBase64Img
+            });
+            renderProducts();
+            // 清空表单
+            document.getElementById('prod-name').value = ""; document.getElementById('prod-size').value = ""; document.getElementById('prod-price').value = ""; document.getElementById('prod-img').value = ""; currentBase64Img = "";
+        }
+
+        // 删除商品
+        function deleteProduct(id) {
+            if(confirm("确定要删除这个商品吗？")) {
+                productList = productList.filter(item => item.id !== id);
+                renderProducts();
+            }
+        }
+
+        // 渲染页面
+        function renderProducts() {
+            const container = document.getElementById('view-container');
+            container.innerHTML = "";
+            if (productList.length === 0) {
+                container.innerHTML = '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>';
+                return;
+            }
+            productList.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <button class="btn-delete" style="display: ${isAdminMode ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
+                    <div class="img-wrapper"><img src="${prod.image}"></div>
+                    <div class="card-info">
+                        <h3 class="card-name">${prod.name}</h3>
+                        <div class="card-size">📏 尺寸：${prod.size}</div>
+                        <div class="card-price-row"><span class="card-price">${prod.price}</span></div>
+                    </div>`;
+                container.appendChild(card);
+            });
+        }
+
+        // 导出数据文件
+        function exportData() {
+            if (productList.length === 0) { alert("没有数据可以导出！"); return; }
+            const blob = new Blob([JSON.stringify(productList)], { type: "text/plain;charset=utf-8" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `拼豆最新数据_${Date.now()}.txt`;
+            link.click();
+        }
+
+        function triggerImport() { document.getElementById('file-input-hidden').click(); }
+
+        // 导入数据文件（修改用）
+        function importData(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    productList = JSON.parse(e.target.result);
+                    renderProducts();
+                    alert("旧数据导入成功！您现在可以继续添加新商品或删除旧商品了。");
+                } catch (err) { alert("文件解析失败！"); }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
