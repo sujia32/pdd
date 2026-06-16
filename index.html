@@ -62,7 +62,6 @@
         <h1>✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
         
-        <!-- 📢 横幅告示牌顺序调整：无豆子换到了第一行 -->
         <div class="notice-box">
             <div class="notice-line">⚪ <b>无豆子版本：</b> 只有底板</div>
             <div class="notice-line">🟢 <b>有豆子版本：</b> 底板 + 豆子 + 锤子 + 取豆器</div>
@@ -77,14 +76,15 @@
             <div class="admin-title">🛠️ GitHub 安全实时同步面板 (双版本价格版)</div>
             <div class="form-grid" style="border-bottom: 1px dashed #eee; padding-bottom: 15px; margin-bottom: 15px;">
                 <div class="form-group" style="grid-column: 1/-1;"><label style="color:#ff4757;">🔑 核心安全验证：请填入您的真实 GitHub Token (ghp_开头的那个)</label>
-                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙，代码中不留痕迹，绝对 safe"></div>
+                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙"></div>
             </div>
             <div class="form-grid">
                 <div class="form-group"><label>1. 上传图片</label><input type="file" id="prod-img" accept="image/*"></div>
                 <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                 <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
-                <div class="form-group"><label>4. 有豆子价格 (元)</label><input type="number" id="prod-price-has" placeholder="0.00" step="0.01"></div>
-                <div class="form-group"><label>5. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
+                <!-- 🔄 输入框顺序调换：无豆子换到了第 4 项，有豆子变成了第 5 项 -->
+                <div class="form-group"><label>4. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
+                <div class="form-group"><label>5. 有豆子价格 (元)</label><input type="number" id="prod-price-has" placeholder="0.00" step="0.01"></div>
             </div>
             <div class="btn-group">
                 <button class="btn-add" onclick="addProduct()">➕ 添加到临时列表</button>
@@ -98,7 +98,7 @@
         // =========================================================================
         // ⚠️ 商家基础配置
         // =========================================================================
-        const ADMIN_PASSWORD = "123";               // 你的网页登录密码
+        const ADMIN_PASSWORD = "404832";               // 你的网页登录密码
         const GITHUB_USER  = "sujia32";             // 你的 GitHub 用户名
         const GITHUB_REPO  = "pdd";                  // 你的 仓库名字
         // =========================================================================
@@ -191,7 +191,6 @@
                 const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
                 const displayNo = prod.priceNo ? prod.priceNo : "0.00";
 
-                // 🔄 这里把商品卡片底部的无豆子版本调整到了第一行展示
                 card.innerHTML = `
                     <button class="btn-delete" style="display: ${isAdminMode ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
@@ -223,7 +222,7 @@
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
-            const bodyData = { message: "Secure update with flipped price order", content: base64Content };
+            const bodyData = { message: "Perfect order update", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -235,7 +234,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ GitHub 保存成功！价格顺序已成功调换！\n\n稍等1分钟左右重新打开或强刷链接即可看到效果。");
+                    alert("⚡ GitHub 保存成功！填价格和看价格的顺序已经完美同步！\n\n稍等1分钟左右重新打开链接即可看到效果。");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
