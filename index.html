@@ -10,7 +10,6 @@
         h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         
-        /* 🎨 新增的粉色横幅内的配件说明标签样式 */
         .notice-box { 
             display: inline-block; 
             background: rgba(255, 255, 255, 0.15); 
@@ -63,7 +62,7 @@
         <h1>✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
         
-        <!-- 📢 新增的说明区块（正好对应 image_3ce8e4.png 里的红色方框位置） -->
+        <!-- 📢 横幅告示牌顺序调整：无豆子换到了第一行 -->
         <div class="notice-box">
             <div class="notice-line">⚪ <b>无豆子版本：</b> 只有底板</div>
             <div class="notice-line">🟢 <b>有豆子版本：</b> 底板 + 豆子 + 锤子 + 取豆器</div>
@@ -78,7 +77,7 @@
             <div class="admin-title">🛠️ GitHub 安全实时同步面板 (双版本价格版)</div>
             <div class="form-grid" style="border-bottom: 1px dashed #eee; padding-bottom: 15px; margin-bottom: 15px;">
                 <div class="form-group" style="grid-column: 1/-1;"><label style="color:#ff4757;">🔑 核心安全验证：请填入您的真实 GitHub Token (ghp_开头的那个)</label>
-                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙，代码中不留痕迹，绝对安全"></div>
+                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙，代码中不留痕迹，绝对 safe"></div>
             </div>
             <div class="form-grid">
                 <div class="form-group"><label>1. 上传图片</label><input type="file" id="prod-img" accept="image/*"></div>
@@ -99,7 +98,7 @@
         // =========================================================================
         // ⚠️ 商家基础配置
         // =========================================================================
-        const ADMIN_PASSWORD = "404832";               // 你的网页登录密码
+        const ADMIN_PASSWORD = "123";               // 你的网页登录密码
         const GITHUB_USER  = "sujia32";             // 你的 GitHub 用户名
         const GITHUB_REPO  = "pdd";                  // 你的 仓库名字
         // =========================================================================
@@ -168,7 +167,6 @@
             
             renderProducts();
             
-            // 清空输入框
             document.getElementById('prod-name').value = ""; 
             document.getElementById('prod-size').value = ""; 
             document.getElementById('prod-price-has').value = ""; 
@@ -193,6 +191,7 @@
                 const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
                 const displayNo = prod.priceNo ? prod.priceNo : "0.00";
 
+                // 🔄 这里把商品卡片底部的无豆子版本调整到了第一行展示
                 card.innerHTML = `
                     <button class="btn-delete" style="display: ${isAdminMode ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
@@ -201,12 +200,12 @@
                         <div class="card-size">📏 尺寸：${prod.size}</div>
                         <div class="price-container">
                             <div class="price-line">
-                                <span class="price-label">🟢 有豆子版本</span>
-                                <span class="price-value has-beads">${displayHas}</span>
-                            </div>
-                            <div class="price-line">
                                 <span class="price-label">⚪ 无豆子版本</span>
                                 <span class="price-value no-beads">${displayNo}</span>
+                            </div>
+                            <div class="price-line">
+                                <span class="price-label">🟢 有豆子版本</span>
+                                <span class="price-value has-beads">${displayHas}</span>
                             </div>
                         </div>
                     </div>`;
@@ -224,7 +223,7 @@
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
-            const bodyData = { message: "Secure update via dashboard with dual prices and headers", content: base64Content };
+            const bodyData = { message: "Secure update with flipped price order", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -236,7 +235,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ GitHub 保存成功！新版界面已提交！\n\n稍等1分钟左右重新打开链接即可看到效果。");
+                    alert("⚡ GitHub 保存成功！价格顺序已成功调换！\n\n稍等1分钟左右重新打开或强刷链接即可看到效果。");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
