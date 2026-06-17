@@ -8,7 +8,6 @@
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
         header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         
-        /* ✨ 秘密暗号触发点：大标题 */
         h1 { margin: 0; font-size: 22px; letter-spacing: 1px; cursor: pointer; user-select: none; -webkit-user-select: none; }
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         
@@ -55,7 +54,6 @@
         .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 🎨 精美数字序号标签（已确保在大厅和后台均生效） */
         .number-badge { 
             position: absolute; 
             top: 8px; 
@@ -90,7 +88,6 @@
 <body>
 
     <header>
-        <!-- 🤫 秘密暗号触发点：连续快速点击这个 H1 标签 5 下 -->
         <h1 onclick="triggerSecretAdmin()">✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
         
@@ -101,7 +98,6 @@
     </header>
 
     <div class="container">
-        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -123,8 +119,8 @@
                     <div class="form-group"><label>1. 作品图片</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
-                    <div class="form-group"><label>4. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
-                    <div class="form-group"><label>5. 有豆子价格 (元)</label><input type="number" id="prod-price-has" placeholder="0.00" step="0.01"></div>
+                    <div class="form-group"><label style="color:#ffa502;">4. 模板重 (克数 g)</label><input type="number" id="prod-grams" placeholder="请输入克数" step="0.01"></div>
+                    <div class="form-group"><label style="color:#ff4757;">5. 需配豆数 (颗)</label><input type="number" id="prod-beads-count" placeholder="请输入豆数" step="1"></div>
                 </div>
                 <div class="btn-group">
                     <button class="btn-add" id="submit-btn" onclick="handleSubmit()">➕ 确定添加到临时列表</button>
@@ -138,7 +134,6 @@
             </div>
         </div>
         
-        <!-- 🌍 客户大厅 -->
         <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
         <div class="template-grid" id="view-container"></div>
     </div>
@@ -166,11 +161,7 @@
             clickCount++;
             clearTimeout(clickTimer);
             clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
-
-            if (clickCount === 5) {
-                clickCount = 0; 
-                loginAdmin();
-            }
+            if (clickCount === 5) { clickCount = 0; loginAdmin(); }
         }
 
         async function loadDataFromCloud() {
@@ -198,6 +189,46 @@
                 switchTab('add'); 
                 alert("进入安全编辑模式。");
             } else if (pass !== null) { alert("密码错误！"); }
+        }
+
+        // 🧮 修正版核心定价算法
+        function calculatePrices(grams, beads) {
+            grams = parseFloat(grams) || 0;
+            beads = parseInt(beads) || 0;
+
+            // 1. 无豆子价格
+            let baseNoBeads = grams * 0.1 + 2 + 0.3;
+            let noBeadsFinal = 0;
+            
+            let noBeadsStr = baseNoBeads.toFixed(4); 
+            let dotIdx1 = noBeadsStr.indexOf('.');
+            let firstDecimalDigit1 = parseInt(noBeadsStr.charAt(dotIdx1 + 1));
+
+            if (firstDecimalDigit1 >= 1 && firstDecimalDigit1 <= 4) {
+                noBeadsFinal = Math.floor(baseNoBeads) + 1; // 四舍：舍去后 + 1
+            } else {
+                noBeadsFinal = Math.ceil(baseNoBeads) + 0.5; // 五入或整点：入了后再加 0.5
+            }
+
+            // 2. 有豆子价格
+            let baseHasBeads = noBeadsFinal + beads * 0.5 * 0.08;
+            let hasBeadsFinal = 0;
+
+            let hasBeadsStr = baseHasBeads.toFixed(4);
+            let dotIdx2 = hasBeadsStr.indexOf('.');
+            let firstDecimalDigit2 = parseInt(hasBeadsStr.charAt(dotIdx2 + 1));
+
+            if (firstDecimalDigit2 >= 1 && firstDecimalDigit2 <= 4) {
+                hasBeadsFinal = Math.floor(baseHasBeads); // 四舍：舍去保留整数
+            } else {
+                // 🎯 完美修正：五入（或整点）直接进位到整数再 - 0.5
+                hasBeadsFinal = Math.ceil(baseHasBeads) - 0.5; 
+            }
+
+            return {
+                noBeads: noBeadsFinal.toFixed(2),
+                hasBeads: hasBeadsFinal.toFixed(2)
+            };
         }
 
         function switchTab(tabName) {
@@ -245,29 +276,34 @@
         function handleSubmit() {
             const name = document.getElementById('prod-name').value.trim();
             const size = document.getElementById('prod-size').value.trim();
-            const priceNo = document.getElementById('prod-price-no').value.trim();
-            const priceHas = document.getElementById('prod-price-has').value.trim();
+            const grams = document.getElementById('prod-grams').value.trim();
+            const beads = document.getElementById('prod-beads-count').value.trim();
 
-            if (!name || !size || !priceNo || !priceHas) { alert("请填齐文字和价格信息！"); return; }
+            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数和豆数！"); return; }
+
+            const calculated = calculatePrices(grams, beads);
 
             if (editingProductId === null) {
                 if (!currentBase64Img) { alert("请上传一张作品图片！"); return; }
                 productList.push({ 
                     id: Date.now(), name: name, size: size, 
-                    priceNo: parseFloat(priceNo).toFixed(2), priceHas: parseFloat(priceHas).toFixed(2), 
+                    grams: grams, beads: beads, 
+                    priceNo: calculated.noBeads, priceHas: calculated.hasBeads, 
                     image: currentBase64Img 
                 });
-                alert("🎉 已成功添加到临时列表。");
+                alert("🎉 已成功计算并添加到临时列表。");
             } else {
                 const index = productList.findIndex(item => item.id === editingProductId);
                 if (index !== -1) {
                     productList[index].name = name;
                     productList[index].size = size;
-                    productList[index].priceNo = parseFloat(priceNo).toFixed(2);
-                    productList[index].priceHas = parseFloat(priceHas).toFixed(2);
+                    productList[index].grams = grams;
+                    productList[index].beads = beads;
+                    productList[index].priceNo = calculated.noBeads;
+                    productList[index].priceHas = calculated.hasBeads;
                     if (currentBase64Img) productList[index].image = currentBase64Img;
                 }
-                alert("✏️ 商品修改成功！已更新到临时列表。");
+                alert("✏️ 商品修改并重新精算成功！已更新到临时列表。");
                 switchTab('edit'); 
             }
             
@@ -288,8 +324,8 @@
 
             document.getElementById('prod-name').value = prod.name;
             document.getElementById('prod-size').value = prod.size;
-            document.getElementById('prod-price-no').value = prod.priceNo;
-            document.getElementById('prod-price-has').value = prod.priceHas;
+            document.getElementById('prod-grams').value = prod.grams || "";
+            document.getElementById('prod-beads-count').value = prod.beads || "";
             currentBase64Img = ""; 
         }
 
@@ -303,8 +339,8 @@
         function clearInputs() {
             document.getElementById('prod-name').value = ""; 
             document.getElementById('prod-size').value = ""; 
-            document.getElementById('prod-price-has').value = ""; 
-            document.getElementById('prod-price-no').value = ""; 
+            document.getElementById('prod-grams').value = ""; 
+            document.getElementById('prod-beads-count').value = ""; 
             document.getElementById('prod-img').value = ""; 
             currentBase64Img = "";
         }
@@ -317,7 +353,6 @@
             }
         }
 
-        // 🛠️ 修复核心：大厅重新加回了序号标签！
         function renderAll() {
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
@@ -325,9 +360,6 @@
             productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
-                const displayNo = prod.priceNo ? prod.priceNo : "0.00";
-
                 card.innerHTML = `
                     <div class="number-badge">No.${index + 1}</div>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
@@ -335,8 +367,8 @@
                         <h3 class="card-name">${prod.name}</h3>
                         <div class="card-size">📏 尺寸：${prod.size}</div>
                         <div class="price-container">
-                            <div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${displayNo}</span></div>
-                            <div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${displayHas}</span></div>
+                            <div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${prod.priceNo}</span></div>
+                            <div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${prod.priceHas}</span></div>
                         </div>
                     </div>`;
                 container.appendChild(card);
@@ -350,9 +382,6 @@
             productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
-                const displayNo = prod.priceNo ? prod.priceNo : "0.00";
-
                 card.innerHTML = `
                     <div class="number-badge">No.${index + 1}</div>
                     <button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
@@ -361,8 +390,8 @@
                         <h3 class="card-name">${prod.name}</h3>
                         <div class="card-size">📏 尺寸：${prod.size}</div>
                         <div class="price-container">
-                            <div class="price-line"><span class="price-label">⚪ 无豆</span><span class="price-value no-beads">${displayNo}</span></div>
-                            <div class="price-line"><span class="price-label">🟢 有豆</span><span class="price-value has-beads">${displayHas}</span></div>
+                            <div class="price-line"><span class="price-label">⚪ 无豆 (重:${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div>
+                            <div class="price-line"><span class="price-label">🟢 有豆 (数:${prod.beads || 0}颗)</span><span class="price-value has-beads">${prod.priceHas}</span></div>
                         </div>
                         ${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 点击修改参数</button>` : ''}
                     </div>`;
@@ -378,7 +407,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Fix numbering badge with hidden admin trigger", content: base64Content };
+            const bodyData = { message: "Update beads price rounding formula change to -0.5", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -390,7 +419,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！隐藏后台+递增序号全部正常运行！");
+                    alert("⚡ 云端同步成功！有豆价格五入【减0.5】模型已完美修正上线！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
