@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>拼豆定制作品选款与价格公示表</title>
-    <!-- 📦 引入 Cropper 裁剪核心样式 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
@@ -31,11 +30,10 @@
         .btn-edit-inline { background-color: #30a1ff; color: white; border: none; cursor: pointer; font-weight: bold; padding: 6px; font-size: 12px; width: 100%; border-radius: 4px; margin-top: 5px; }
         .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
         @media (min-width: 600px) { .template-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; } }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; min-height: 330px; }
         .card:hover { transform: translateY(-3px); }
         .img-wrapper { width: 100%; height: 220px; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
-        .img-wrapper img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; } 
-        .img-wrapper::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 2; }
+        .img-wrapper img { width: 100%; height: 100%; object-fit: contain; display: block; } 
         .number-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; font-size: 11px; font-weight: bold; border-radius: 20px; z-index: 5; backdrop-filter: blur(2px); }
         .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; z-index: 3; }
         .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
@@ -52,15 +50,14 @@
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 10px; }
         .crop-container { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
-        .crop-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; color: #333; }
-        .crop-subtitle { font-size: 13px; color: #ee5253; margin-bottom: 15px; font-weight: bold; }
         .crop-box-wrapper { width: 100%; max-height: 60vh; margin: 0 auto 20px auto; background: #111; border-radius: 6px; overflow: hidden; }
         #crop-target-img { max-width: 100%; display: block; }
-        .cropper-line, .cropper-point { background-color: #ee5253 !important; }
-        .cropper-view-box { outline: 2px solid #ee5253 !important; }
         .crop-actions { display: flex; justify-content: space-between; gap: 12px; }
         .crop-btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 0; width: 48%; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
         .crop-btn-confirm { background: #28a745; color: white; border: none; padding: 12px 0; width: 48%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        /* ⏳ 骨架屏加载动画，提升秒开体验 */
+        .skeleton { background: linear-gradient(90deg, #f2f2f2 25%, #e6e6e6 37%, #f2f2f2 63%); background-size: 400% 100%; animation: loading 1.4s ease infinite; }
+        @keyframes loading { 0% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     </style>
 </head>
 <body>
@@ -88,7 +85,7 @@
             <div id="section-form" class="panel-section active">
                 <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (支持鼠标拉动单边自由缩放)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片 (会自动智能压缩)</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label style="color:#ffa502;">4. 模板重 (克数 g)</label><input type="number" id="prod-grams" placeholder="请输入克数" step="0.01"></div>
@@ -111,8 +108,7 @@
     </div>
     <div id="crop-modal">
         <div class="crop-container">
-            <div class="crop-title">📐 鼠标拉住单边控制往内往外</div>
-            <div class="crop-subtitle">🤏 鼠标按住上下左右正边缘的滑块拖拽即可</div>
+            <h3 style="margin-top:0;">📐 自由调整截取范围</h3>
             <div class="crop-box-wrapper"><img id="crop-target-img" src="" alt="裁剪目标"></div>
             <div class="crop-actions">
                 <button class="crop-btn-cancel" onclick="closeCropModal()">取消</button>
@@ -122,46 +118,71 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script>
-        const ADMIN_PASSWORD = "123";               
-        const GITHUB_USER  = "sujia32";             
-        const GITHUB_REPO  = "pdd";                  
-        const FILE_PATH = "data.json"; 
+        const ADMIN_PASSWORD = "123"; const GITHUB_USER = "sujia32"; const GITHUB_REPO = "pdd"; const FILE_PATH = "data.json"; 
         let productList = []; let currentBase64Img = ""; let isAdminMode = false; let fileSha = "";
         let currentTab = 'add'; let editingProductId = null; let clickCount = 0; let clickTimer = null; let cropperInstance = null;
         window.onload = loadDataFromCloud;
         function triggerSecretAdmin() { clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 2000); if (clickCount === 5) { clickCount = 0; loginAdmin(); } }
         
-        // 🚀 大文件多源并行流式拉取方案
         async function loadDataFromCloud() {
+            // 先渲染几个骨架屏，让手机秒开不白屏
+            const container = document.getElementById('view-container');
+            container.innerHTML = Array(4).fill('<div class="card skeleton"></div>').join('');
+            
             const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${FILE_PATH}?t=${Date.now()}`;
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
             try {
                 let apiResponse = await fetch(apiUrl);
                 if (apiResponse.status === 200) { let resData = await apiResponse.json(); fileSha = resData.sha; }
                 let response = await fetch(rawUrl);
-                if (response.status === 200) { productList = await response.json(); console.log("加载成功！"); renderAll(); return; }
-            } catch (e) { console.log("首选通道异常，启用备用高速通道..."); }
+                if (response.status === 200) { productList = await response.json(); renderAll(); return; }
+            } catch (e) {}
             try {
                 const cdnUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${FILE_PATH}?t=${Date.now()}`;
                 let cdnResponse = await fetch(cdnUrl);
                 if (cdnResponse.status === 200) { productList = await cdnResponse.json(); }
-            } catch(err) { console.log("全部通道受阻"); }
+            } catch(err) {}
             renderAll();
         }
-        function loginAdmin() { const pass = prompt("🔑 暗号正确！请输入商家管理密码："); if (pass === ADMIN_PASSWORD) { isAdminMode = true; document.getElementById('admin-panel').style.display = 'block'; if(localStorage.getItem('gh_tk')) { document.getElementById('secure-token').value = localStorage.getItem('gh_tk'); } switchTab('add', null); alert("进入安全编辑模式。"); } else if (pass !== null) { alert("密码错误！"); } }
+
+        function loginAdmin() { const pass = prompt("🔑 请输入商家管理密码："); if (pass === ADMIN_PASSWORD) { isAdminMode = true; document.getElementById('admin-panel').style.display = 'block'; if(localStorage.getItem('gh_tk')) { document.getElementById('secure-token').value = localStorage.getItem('gh_tk'); } switchTab('add', null); } else if (pass !== null) { alert("密码错误！"); } }
         function calculatePrices(grams, beads) { grams = parseFloat(grams) || 0; beads = parseInt(beads) || 0; let baseNoBeads = grams * 0.1 + 2 + 0.3; let noBeadsFinal = 0; let noBeadsStr = baseNoBeads.toFixed(4); let dotIdx1 = noBeadsStr.indexOf('.'); let firstDecimalDigit1 = parseInt(noBeadsStr.charAt(dotIdx1 + 1)); if (firstDecimalDigit1 >= 1 && firstDecimalDigit1 <= 4) { noBeadsFinal = Math.floor(baseNoBeads) + 1; } else { noBeadsFinal = Math.ceil(baseNoBeads) + 0.5; } let baseHasBeads = noBeadsFinal + beads * 0.5 * 0.08; let hasBeadsFinal = 0; let hasBeadsStr = baseHasBeads.toFixed(4); let dotIdx2 = hasBeadsStr.indexOf('.'); let firstDecimalDigit2 = parseInt(hasBeadsStr.charAt(dotIdx2 + 1)); if (firstDecimalDigit2 >= 1 && firstDecimalDigit2 <= 4) { hasBeadsFinal = Math.floor(baseHasBeads); } else { hasBeadsFinal = Math.ceil(baseHasBeads) - 0.5; } return { noBeads: noBeadsFinal.toFixed(2), hasBeads: hasBeadsFinal.toFixed(2) }; }
-        document.getElementById('prod-img').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(event) { const img = document.getElementById('crop-target-img'); if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } img.src = event.target.result; document.getElementById('crop-modal').style.display = 'flex'; cropperInstance = new Cropper(img, { aspectRatio: null, viewMode: 1, dragMode: 'move', guides: true, center: true, background: true, autoCropArea: 0.6, cropBoxMovable: true, cropBoxResizable: true, zoomOnWheel: true, zoomOnTouch: true }); }; reader.readAsDataURL(file); });
-        function confirmCrop() { if (!cropperInstance) return; const canvas = cropperInstance.getCroppedCanvas({ imageSmoothingEnabled: true, imageSmoothingQuality: 'high' }); if (canvas) { currentBase64Img = canvas.toDataURL('image/jpeg', 0.85); cropperInstance.destroy(); cropperInstance = null; document.getElementById('crop-modal').style.display = 'none'; alert("✨ 自由截取成功！"); } else { alert("裁剪失败！"); } }
+        
+        document.getElementById('prod-img').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(event) { const img = document.getElementById('crop-target-img'); if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } img.src = event.target.result; document.getElementById('crop-modal').style.display = 'flex'; cropperInstance = new Cropper(img, { aspectRatio: null, viewMode: 1, dragMode: 'move', autoCropArea: 0.8 }); }; reader.readAsDataURL(file); });
+        
+        function confirmCrop() { 
+            if (!cropperInstance) return; 
+            // 🛠️ 核心优化：限制裁剪输出的最大尺寸为 400 像素，大幅降低图片体积
+            const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 400, maxHeight: 400, imageSmoothingEnabled: true, imageSmoothingQuality: 'medium' }); 
+            if (canvas) { 
+                currentBase64Img = canvas.toDataURL('image/jpeg', 0.7); // 压缩率调到 0.7
+                cropperInstance.destroy(); cropperInstance = null; 
+                document.getElementById('crop-modal').style.display = 'none'; 
+                alert("✨ 截图成功并已完成高能体积压缩！"); 
+            } 
+        }
         function closeCropModal() { if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } document.getElementById('crop-modal').style.display = 'none'; document.getElementById('prod-img').value = ""; }
-        function switchTab(tabName, event) { currentTab = tabName; exitEditMode(); document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); if(event && event.target && event.target.classList.contains('tab-btn')) { event.target.classList.add('active'); } else { const btns = document.querySelectorAll('.tab-btn'); if(tabName === 'add') btns[0].classList.add('active'); if(tabName === 'edit') btns[1].classList.add('active'); if(tabName === 'delete') btns[2].classList.add('active'); } const sectionForm = document.getElementById('section-form'); const sectionPreview = document.getElementById('section-preview'); const hint = document.getElementById('preview-title-hint'); if (tabName === 'add') { sectionForm.className = "panel-section active"; sectionPreview.className = "panel-section"; document.getElementById('submit-btn').innerHTML = "➕ 确定添加到临时列表"; } else if (tabName === 'edit') { sectionForm.className = "panel-section"; sectionPreview.className = "panel-section active"; hint.innerHTML = "✏️ <b>修改模式：</b> 点击商品下方的【⚙️ 修改参数】。"; renderAdminPreview(); } else if (tabName === 'delete') { sectionForm.className = "panel-section"; sectionPreview.className = "panel-section active"; hint.innerHTML = "✕ <b>下架删除模式：</b> 点击商品右上角的【✕】。"; renderAdminPreview(); } }
-        function handleSubmit() { const name = document.getElementById('prod-name').value.trim(); const size = document.getElementById('prod-size').value.trim(); const grams = document.getElementById('prod-grams').value.trim(); const beads = document.getElementById('prod-beads-count').value.trim(); if (!name || !size || !grams || !beads) { alert("请填齐文本、尺寸、克数和豆数！"); return; } const calculated = calculatePrices(grams, beads); if (editingProductId === null) { if (!currentBase64Img) { alert("请上传并截取一张作品图片范围！"); return; } productList.unshift({ id: Date.now(), name: name, size: size, grams: grams, beads: beads, priceNo: calculated.noBeads, priceHas: calculated.hasBeads, image: currentBase64Img }); alert("🎉 已成功添加到临时列表。"); } else { const index = productList.findIndex(item => item.id === editingProductId); if (index !== -1) { productList[index].name = name; productList[index].size = size; productList[index].grams = grams; productList[index].beads = beads; productList[index].priceNo = calculated.noBeads; productList[index].priceHas = calculated.hasBeads; if (currentBase64Img) productList[index].image = currentBase64Img; } alert("✏️ 商品修改成功！已更新到临时列表。"); switchTab('edit', null); } clearInputs(); renderAll(); }
+        function switchTab(tabName, event) { currentTab = tabName; exitEditMode(); document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); if(event && event.target) { event.target.classList.add('active'); } else { const btns = document.querySelectorAll('.tab-btn'); if(tabName === 'add') btns[0].classList.add('active'); if(tabName === 'edit') btns[1].classList.add('active'); if(tabName === 'delete') btns[2].classList.add('active'); } const sectionForm = document.getElementById('section-form'); const sectionPreview = document.getElementById('section-preview'); const hint = document.getElementById('preview-title-hint'); if (tabName === 'add') { sectionForm.className = "panel-section active"; sectionPreview.className = "panel-section"; document.getElementById('submit-btn').innerHTML = "➕ 确定添加到临时列表"; } else { sectionForm.className = "panel-section"; sectionPreview.className = "panel-section active"; hint.innerHTML = tabName === 'edit' ? "✏️ 点击商品下方的【⚙️ 修改参数】" : "✕ 点击商品右上角的【✕】"; renderAdminPreview(); } }
+        function handleSubmit() { const name = document.getElementById('prod-name').value.trim(); const size = document.getElementById('prod-size').value.trim(); const grams = document.getElementById('prod-grams').value.trim(); const beads = document.getElementById('prod-beads-count').value.trim(); if (!name || !size || !grams || !beads) { alert("请填齐文本、尺寸、克数和豆数！"); return; } const calculated = calculatePrices(grams, beads); if (editingProductId === null) { if (!currentBase64Img) { alert("请上传并截取一张商品图片！"); return; } productList.unshift({ id: Date.now(), name: name, size: size, grams: grams, beads: beads, priceNo: calculated.noBeads, priceHas: calculated.hasBeads, image: currentBase64Img }); alert("🎉 已添加到临时列表。"); } else { const index = productList.findIndex(item => item.id === editingProductId); if (index !== -1) { productList[index].name = name; productList[index].size = size; productList[index].grams = grams; productList[index].beads = beads; productList[index].priceNo = calculated.noBeads; productList[index].priceHas = calculated.hasBeads; if (currentBase64Img) productList[index].image = currentBase64Img; } alert("✏️ 修改成功！已更新到临时列表。"); switchTab('edit', null); } clearInputs(); renderAll(); }
         function startEditProduct(id) { const prod = productList.find(item => item.id === id); if (!prod) return; editingProductId = id; document.getElementById('section-form').className = "panel-section active"; document.getElementById('section-preview').className = "panel-section"; document.getElementById('edit-mode-indicator').style.display = "block"; document.getElementById('cancel-btn').style.display = "inline-block"; document.getElementById('submit-btn').innerHTML = "⚙️ 确认修改该商品信息"; document.getElementById('prod-name').value = prod.name; document.getElementById('prod-size').value = prod.size; document.getElementById('prod-grams').value = prod.grams || ""; document.getElementById('prod-beads-count').value = prod.beads || ""; currentBase64Img = ""; }
         function exitEditMode() { editingProductId = null; document.getElementById('edit-mode-indicator').style.display = "none"; document.getElementById('cancel-btn').style.display = "none"; clearInputs(); }
         function clearInputs() { document.getElementById('prod-name').value = ""; document.getElementById('prod-size').value = ""; document.getElementById('prod-grams').value = ""; document.getElementById('prod-beads-count').value = ""; document.getElementById('prod-img').value = ""; currentBase64Img = ""; }
         function deleteProduct(id) { if(confirm("确定要下架删除这个商品吗？")) { productList = productList.filter(item => item.id !== id); renderAll(); renderAdminPreview(); } }
-        function renderAll() { const container = document.getElementById('view-container'); container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : ""; productList.forEach((prod, index) => { const card = document.createElement('div'); card.className = 'card'; const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : ""; card.innerHTML = `<div class="number-badge">No.${index + 1}</div><div class="img-wrapper"><img src="${prod.image}"></div><div class="card-info"><h3 class="card-name">${prod.name}</h3><div class="card-size">📏 尺寸：${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${prod.priceHas}</span></div></div></div>`; container.appendChild(card); }); }
-        function renderAdminPreview() { const container = document.getElementById('admin-preview-container'); container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品可供管理 ✨</div>' : ""; productList.forEach((prod, index) => { const card = document.createElement('div'); card.className = 'card'; const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : ""; card.innerHTML = `<div class="number-badge">No.${index + 1}</div><button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button><div class="img-wrapper"><img src="${prod.image}"></div><div class="card-info"><h3 class="card-name">${prod.name}</h3><div class="card-size">📏 尺寸：${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆 (重:${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆 (数:${prod.beads || 0}颗)</span><span class="price-value has-beads">${prod.priceHas}</span></div></div>${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 点击修改参数</button>` : ''}</div>`; container.appendChild(card); }); }
-        async function saveToGitHub() { const userToken = document.getElementById('secure-token').value.trim(); if(!userToken) { alert("请在上方粘贴填入你的 GitHub Token 密钥！"); return; } localStorage.setItem('gh_tk', userToken); const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`; const jsonString = JSON.stringify(productList); const base64Content = btoa(unescape(encodeURIComponent(jsonString))); const bodyData = { message: "Sync product data", content: base64Content }; if (fileSha) bodyData.sha = fileSha; try { let response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${userToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); if (response.status === 200 || response.status === 201) { let resJson = await response.json(); fileSha = resJson.content.sha; alert("⚡ 数据已成功同步至云端 data.json！"); } else { alert("保存失败！请检查 Token 是否有效。"); } } catch (e) { alert("云端同步故障: " + e.message); } }
+        
+        function renderAll() { 
+            const container = document.getElementById('view-container'); 
+            container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示 ✨</div>' : ""; 
+            productList.forEach((prod, index) => { 
+                const card = document.createElement('div'); 
+                card.className = 'card'; 
+                const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : ""; 
+                // ⚡ 开启浏览器原生 lazyload 懒加载防卡顿
+                card.innerHTML = `<div class="number-badge">No.${index + 1}</div><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name">${prod.name}</h3><div class="card-size">📏 尺寸：${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${prod.priceHas}</span></div></div></div>`; 
+                container.appendChild(card); 
+            }); 
+        }
+        function renderAdminPreview() { const container = document.getElementById('admin-preview-container'); container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品 ✨</div>' : ""; productList.forEach((prod, index) => { const card = document.createElement('div'); card.className = 'card'; const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : ""; card.innerHTML = `<div class="number-badge">No.${index + 1}</div><button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name">${prod.name}</h3><div class="card-size">📏 尺寸：${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆 (${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆 (${prod.beads || 0}颗)</span><span class="price-value has-beads">${prod.priceHas}</span></div></div>${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 修改参数</button>` : ''}</div>`; container.appendChild(card); }); }
+        async function saveToGitHub() { const userToken = document.getElementById('secure-token').value.trim(); if(!userToken) { alert("请填入 GitHub Token！"); return; } localStorage.setItem('gh_tk', userToken); const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`; const jsonString = JSON.stringify(productList); const base64Content = btoa(unescape(encodeURIComponent(jsonString))); const bodyData = { message: "Sync compressed data", content: base64Content }; if (fileSha) bodyData.sha = fileSha; try { let response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${userToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); if (response.status === 200 || response.status === 201) { let resJson = await response.json(); fileSha = resJson.content.sha; alert("⚡ 云端压缩同步成功！"); } else { alert("保存失败！"); } } catch (e) { alert("同步故障: " + e.message); } }
     </script>
 </body>
 </html>
