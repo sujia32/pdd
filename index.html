@@ -89,7 +89,6 @@
         .crop-container { background: white; padding: 15px; border-radius: 12px; width: 320px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
         .crop-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #333; }
         
-        /* 视窗区域 */
         .crop-box { 
             position: relative; 
             width: 260px; 
@@ -108,7 +107,6 @@
             user-select: none;
             -webkit-user-drag: none;
         }
-        /* 1:1的正方形半透明遮罩取景框 */
         .crop-outline { 
             position: absolute; 
             top: 10px; 
@@ -121,7 +119,6 @@
             box-sizing: border-box;
         }
 
-        /* 缩放控制台 */
         .zoom-controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; align-items: center; }
         .zoom-btn { background: #f0f2f5; border: 1px solid #ccc; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; user-select: none; }
         .zoom-btn:active { background: #ddd; }
@@ -144,6 +141,7 @@
     </header>
 
     <div class="container">
+        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -180,10 +178,14 @@
             </div>
         </div>
         
-        <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
-        <div class="template-grid" id="view-container"></div>
+        <!-- 🌍 客户大厅 -->
+        <div id="client-display-section">
+            <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
+            <div class="template-grid" id="view-container"></div>
+        </div>
     </div>
 
+    <!-- ✂️ 纯原生免插件图片裁剪弹窗 -->
     <div id="crop-modal">
         <div class="crop-container">
             <div class="crop-title">📐 调整正方形截取范围</div>
@@ -223,7 +225,6 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        // 🧠 原生拖拽裁剪核心数据变量
         let imgX = 10, imgY = 10, imgScale = 1.0;
         let isDragging = false;
         let startX = 0, startY = 0;
@@ -250,6 +251,7 @@
                 }
             } catch (e) { console.log("云端暂时没有商品数据"); }
             renderAll();
+            adjustDisplayByTab(); 
         }
 
         function loginAdmin() {
@@ -301,7 +303,6 @@
             };
         }
 
-        // ✂️ 纯原生免插件图片范围读取逻辑
         document.getElementById('prod-img').addEventListener('change', function(e) {
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
@@ -313,11 +314,9 @@
                     originalImgWidth = img.naturalWidth;
                     originalImgHeight = img.naturalHeight;
                     
-                    // 自动适配初始缩放比例，撑满取景框
                     let minSide = Math.min(originalImgWidth, originalImgHeight);
                     imgScale = 240 / minSide; 
                     
-                    // 居中放置
                     imgX = (260 - originalImgWidth * imgScale) / 2;
                     imgY = (260 - originalImgHeight * imgScale) / 2;
                     
@@ -338,7 +337,6 @@
             updateImgTransform();
         }
 
-        // 🛠️ 原生手势与鼠标拖拽监听
         const cropBox = document.getElementById('crop-box');
         
         function dragStart(e) {
@@ -368,7 +366,6 @@
         window.addEventListener('touchmove', dragMove);
         window.addEventListener('touchend', dragEnd);
 
-        // 🧠 原生 HTML5 Canvas 高清切图合成
         function confirmCrop() {
             const img = document.getElementById('crop-target-img');
             const canvas = document.createElement('canvas');
@@ -376,7 +373,6 @@
             canvas.height = 500;
             const ctx = canvas.getContext('2d');
 
-            // 核心映射计算：找到取景框（从红框内 10px,10px 到宽240px）映射回原图的坐标范围
             let cropAreaXInBox = 10;
             let cropAreaYInBox = 10;
             let cropSizeInBox = 240;
@@ -401,9 +397,20 @@
             document.getElementById('prod-img').value = "";
         }
 
+        // 控制当前界面的显示状态
+        function adjustDisplayByTab() {
+            const clientSection = document.getElementById('client-display-section');
+            if (currentTab === 'add') {
+                clientSection.style.display = 'none'; // 🧠 在添加状态下隐藏大厅商品
+            } else {
+                clientSection.style.display = 'block'; // 🧠 修改和删除时显示大厅商品以便对照
+            }
+        }
+
         function switchTab(tabName) {
             currentTab = tabName;
             exitEditMode(); 
+            adjustDisplayByTab();
             
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             if(event && event.target && event.target.classList.contains('tab-btn')) {
@@ -448,13 +455,14 @@
 
             if (editingProductId === null) {
                 if (!currentBase64Img) { alert("请上传并截取一张作品图片范围！"); return; }
-                productList.push({ 
+                // 🧠 核心改变：使用 unshift 插入到数组最前面，实现最新添加置顶显示
+                productList.unshift({ 
                     id: Date.now(), name: name, size: size, 
                     grams: grams, beads: beads, 
                     priceNo: calculated.noBeads, priceHas: calculated.hasBeads, 
                     image: currentBase64Img 
                 });
-                alert("🎉 已成功计算并添加到临时列表。");
+                alert("🎉 已成功计算并【置顶】添加到临时列表。");
             } else {
                 const index = productList.findIndex(item => item.id === editingProductId);
                 if (index !== -1) {
@@ -574,7 +582,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Switch to stable pure native crop tool", content: base64Content };
+            const bodyData = { message: "Clean layout and unshift ranking feature added", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -586,7 +594,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！百分百兼容的原生切图系统已平稳运行！");
+                    alert("⚡ 云端同步成功！现在添加商品更清爽，且自动置顶！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
