@@ -53,8 +53,35 @@
         @media (min-width: 600px) { .template-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; } }
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-3px); }
-        .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-        .img-wrapper img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; } /* 禁用图片的鼠标右键/长按菜单提示，防止干扰 */
+        
+        /* 🛡️ 隐形盾核心样式：彻底阻断浏览器在图片右上角生成恶心图标 */
+        .img-wrapper { 
+            width: 100%; 
+            aspect-ratio: 1 / 1; 
+            background-color: #f0f0f0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+            position: relative; /* 必加：给保护盾做定位基准 */
+        }
+        .img-wrapper img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            pointer-events: none; /* 禁用图片本身的鼠标事件 */
+        } 
+        /* ✨ 终极隐形保护盾：盖在图片最上层，让浏览器探测不到图片，从而绝杀“搜索和设置”图标 */
+        .img-wrapper::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent; /* 完全透明 */
+            z-index: 2; /* 压在图片和任何浏览器内置插件之上 */
+        }
         
         .number-badge { 
             position: absolute; 
@@ -66,12 +93,12 @@
             font-size: 11px; 
             font-weight: bold; 
             border-radius: 20px; 
-            z-index: 5;
+            z-index: 5; /* 保证编号在隐形盾上面能看清 */
             letter-spacing: 0.5px;
             backdrop-filter: blur(2px);
         }
 
-        .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
+        .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; z-index: 3; }
         .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
         .card-size { font-size: 12px; color: #888; margin-top: 2px; margin-bottom: 4px; }
         .price-container { display: flex; flex-direction: column; gap: 4px; margin-top: auto; padding-top: 8px; border-top: 1px solid #f6f6f6; font-size: 13px; }
@@ -102,7 +129,7 @@
         }
         #crop-target-img { max-width: 100%; display: block; }
 
-        /* 覆盖插件样式，边框和拉伸块使用拼豆红 */
+        /* 覆盖插件样式 */
         .cropper-line, .cropper-point { background-color: #ee5253 !important; }
         .cropper-view-box { outline: 2px solid #ee5253 !important; }
 
@@ -382,7 +409,7 @@
             const grams = document.getElementById('prod-grams').value.trim();
             const beads = document.getElementById('prod-beads-count').value.trim();
 
-            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数和豆数！"); return; }
+            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数 and 豆数！"); return; }
 
             const calculated = calculatePrices(grams, beads);
 
@@ -514,7 +541,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Clean up client view image events", content: base64Content };
+            const bodyData = { message: "Deploy ultimate invisible shield mask for browser elements", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -526,7 +553,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！大厅已彻底恢复纯净清爽外观！");
+                    alert("⚡ 云端同步成功！这下隐形盾彻底开启，那些流氓图标被全部强行屏蔽啦！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
