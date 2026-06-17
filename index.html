@@ -238,16 +238,27 @@
         }
 
         async function loadDataFromCloud() {
-            const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
+    // 🔥 升级为 CDN 加速通道，专门对付几兆以上的大文件，绕过 GitHub 接口限制
+            const cdnUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${FILE_PATH}?t=${Date.now()}`;
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
+    
             try {
-                let response = await fetch(url);
-                if (response.status === 200) {
-                    let resData = await response.json();
+        // 先获取最新的文件 SHA 状态（为了后续能正常提交保存）
+                let apiResponse = await fetch(apiUrl);
+                if (apiResponse.status === 200) {
+                    let resData = await apiResponse.json();
                     fileSha = resData.sha;
-                    let content = decodeURIComponent(escape(atob(resData.content)));
-                    productList = JSON.parse(content);
                 }
-            } catch (e) { console.log("云端暂时没有商品数据"); }
+
+        // 核心：改用高速通道下载大文件内容
+                let response = await fetch(cdnUrl);
+                if (response.status === 200) {
+                    productList = await response.json();
+                    console.log("成功通过大文件通道加载了 " + productList.length + " 个商品！");
+                }
+            } catch (e) { 
+                console.log("读取云端数据失败，尝试备用方案...", e); 
+            }
             renderAll();
         }
 
