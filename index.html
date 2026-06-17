@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>拼豆定制作品选款与价格公示表</title>
-    <!-- 📦 引入 Cropper 裁剪核心样式 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
@@ -54,33 +53,31 @@
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-3px); }
         
-        /* 🛡️ 隐形盾核心样式：彻底阻断浏览器在图片右上角生成恶心图标 */
+        /* 🛡️ 隐形保护盾容器（大厅图片展示区） */
         .img-wrapper { 
             width: 100%; 
-            aspect-ratio: 1 / 1; 
             background-color: #f0f0f0; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             overflow: hidden; 
-            position: relative; /* 必加：给保护盾做定位基准 */
+            position: relative; 
+            /* ✨ 关键改动：不再锁死 1:1 正方形，高度由裁剪出来的图片大小自动撑开 */
+            height: auto; 
         }
         .img-wrapper img { 
             width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            pointer-events: none; /* 禁用图片本身的鼠标事件 */
+            height: auto; /* ✨ 关键改动：图片高度自适应，无论是长方、扁方、都完美展现不拉伸 */
+            display: block;
+            pointer-events: none; 
         } 
-        /* ✨ 终极隐形保护盾：盖在图片最上层，让浏览器探测不到图片，从而绝杀“搜索和设置”图标 */
+        /* 终极隐形保护盾，彻底阻断识图和设置图标 */
         .img-wrapper::after {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent; /* 完全透明 */
-            z-index: 2; /* 压在图片和任何浏览器内置插件之上 */
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: transparent; 
+            z-index: 2; 
         }
         
         .number-badge { 
@@ -93,7 +90,7 @@
             font-size: 11px; 
             font-weight: bold; 
             border-radius: 20px; 
-            z-index: 5; /* 保证编号在隐形盾上面能看清 */
+            z-index: 5; 
             letter-spacing: 0.5px;
             backdrop-filter: blur(2px);
         }
@@ -113,15 +110,16 @@
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
 
-        /* ✂️ 裁剪弹窗样式 */
+        /* ✂️ 自由裁剪弹窗样式 */
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-        .crop-container { background: white; padding: 15px; border-radius: 12px; width: 340px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
+        .crop-container { background: white; padding: 15px; border-radius: 12px; width: 360px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
         .crop-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; color: #333; }
         .crop-subtitle { font-size: 12px; color: #ee5253; margin-bottom: 12px; font-weight: bold; }
         
+        /* 裁剪外盒尺寸定义 */
         .crop-box-wrapper { 
-            width: 300px; 
-            height: 300px; 
+            width: 320px; 
+            height: 320px; 
             margin: 0 auto 15px auto; 
             background: #222; 
             border-radius: 6px;
@@ -151,7 +149,6 @@
     </header>
 
     <div class="container">
-        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -170,7 +167,7 @@
             <div id="section-form" class="panel-section active">
                 <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (用鼠标拉动裁剪框边缘调整大小)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片 (鼠标按住小方块可以拉任意长宽形状)</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label style="color:#ffa502;">4. 模板重 (克数 g)</label><input type="number" id="prod-grams" placeholder="请输入克数" step="0.01"></div>
@@ -188,18 +185,16 @@
             </div>
         </div>
         
-        <!-- 🌍 客户大厅 -->
         <div id="client-display-section">
             <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
             <div class="template-grid" id="view-container"></div>
         </div>
     </div>
 
-    <!-- ✂️ 裁剪弹窗 -->
     <div id="crop-modal">
         <div class="crop-container">
-            <div class="crop-title">📐 调整正方形截取范围</div>
-            <div class="crop-subtitle">🤏 鼠标按住边框的『小方块』即可拉大或拉小</div>
+            <div class="crop-title">📐 自由拉伸裁切范围</div>
+            <div class="crop-subtitle">🤏 鼠标按住边缘方块，可拉成任意长方形或任意比例</div>
             
             <div class="crop-box-wrapper">
                 <img id="crop-target-img" src="" alt="裁剪目标">
@@ -212,7 +207,6 @@
         </div>
     </div>
 
-    <!-- 📦 引入 Cropper 核心脚本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script>
         const ADMIN_PASSWORD = "123";               
@@ -319,8 +313,9 @@
                 img.src = event.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
                 
+                // ✨ 核心机制：修改配置打破正方形锁死限制
                 cropperInstance = new Cropper(img, {
-                    aspectRatio: 1,          
+                    aspectRatio: NaN,         // ✨ 设为 NaN，代表解除 1:1 锁定，支持任意长宽比例！
                     viewMode: 1,             
                     dragMode: 'move',        
                     guides: true,            
@@ -339,9 +334,8 @@
         function confirmCrop() {
             if (!cropperInstance) return;
             
+            // 这里不再强制规定宽高 500x500，而是获取用户真正选中的实际比例进行无损输出
             const canvas = cropperInstance.getCroppedCanvas({
-                width: 500,
-                height: 500,
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high'
             });
@@ -353,7 +347,7 @@
                 cropperInstance = null;
                 
                 document.getElementById('crop-modal').style.display = 'none';
-                alert("✨ 范围截取成功！切图已就绪。");
+                alert("✨ 任意比例范围截取成功！切图已就绪。");
             } else {
                 alert("裁剪失败，请尝试重新选择图片！");
             }
@@ -409,7 +403,7 @@
             const grams = document.getElementById('prod-grams').value.trim();
             const beads = document.getElementById('prod-beads-count').value.trim();
 
-            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数 and 豆数！"); return; }
+            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数和豆数！"); return; }
 
             const calculated = calculatePrices(grams, beads);
 
@@ -541,7 +535,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Deploy ultimate invisible shield mask for browser elements", content: base64Content };
+            const bodyData = { message: "Unlock free aspect ratio and fluid layout adaptation", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -553,7 +547,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！这下隐形盾彻底开启，那些流氓图标被全部强行屏蔽啦！");
+                    alert("⚡ 云端同步成功！现在裁剪任意长宽、任意比例都会完美在客户端原封不动显示出来啦！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
