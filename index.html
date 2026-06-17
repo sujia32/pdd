@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>敲豆价格表</title>
-    <!-- 📦 引入 Cropper 裁剪核心样式 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
@@ -54,11 +53,11 @@
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-3px); }
         
-        /* 🛡️ 大厅图片展示区（全新升级：等比居中，完美自动留白填充） */
+        /* 大厅图片展示区（等比居中，留白填充） */
         .img-wrapper { 
             width: 100%; 
-            height: 220px;            /* 统一卡片里的图片区域高度，保持大厅整齐 */
-            background-color: #f8f9fa; /* 填充区域的背景颜色（可改成 #ffffff 纯白） */
+            height: 220px;            
+            background-color: #f8f9fa; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -68,7 +67,7 @@
         .img-wrapper img { 
             width: 100%; 
             height: 100%; 
-            object-fit: contain;      /* ✨ 核心：非正方形图片会自动居中，并在四周填充空白，绝不变形 */
+            object-fit: contain;      
             display: block;
             pointer-events: none; 
         } 
@@ -146,10 +145,9 @@
     </header>
 
     <div class="container">
-        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
-                <span>🛠️ 敲豆后台云管理系统</span>
+                <span>🛠️ 拼豆后台云管理系统</span>
                 <button class="btn-sync" onclick="saveToGitHub()">⚡ 点击保存所有更改并同步云端</button>
             </div>
             
@@ -183,14 +181,12 @@
             </div>
         </div>
         
-        <!-- 🌍 客户大厅 -->
         <div id="client-display-section">
             <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
             <div class="template-grid" id="view-container"></div>
         </div>
     </div>
 
-    <!-- ✂️ 自由拉伸裁剪弹窗 -->
     <div id="crop-modal">
         <div class="crop-container">
             <div class="crop-title">📐 鼠标拉住单边控制往内往外</div>
@@ -207,10 +203,9 @@
         </div>
     </div>
 
-    <!-- 📦 引入 Cropper 核心脚本 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script>
-        const ADMIN_PASSWORD = "404832";               
+        const ADMIN_PASSWORD = "123";               
         const GITHUB_USER  = "sujia32";             
         const GITHUB_REPO  = "pdd";                  
         const FILE_PATH = "data.json"; 
@@ -237,27 +232,28 @@
             if (clickCount === 5) { clickCount = 0; loginAdmin(); }
         }
 
+        // 🚀 大文件加速专用通道（核心升级）
         async function loadDataFromCloud() {
-    // 🔥 升级为 CDN 加速通道，专门对付几兆以上的大文件，绕过 GitHub 接口限制
+            // 通过 jsDelivr CDN 强制突破 GitHub 的大小限制读取数据
             const cdnUrl = `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@main/${FILE_PATH}?t=${Date.now()}`;
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
-    
+            
             try {
-        // 先获取最新的文件 SHA 状态（为了后续能正常提交保存）
+                // 先在后台悄悄获取文件的 SHA（用来保证后面还可以继续添加保存）
                 let apiResponse = await fetch(apiUrl);
                 if (apiResponse.status === 200) {
                     let resData = await apiResponse.json();
                     fileSha = resData.sha;
                 }
 
-        // 核心：改用高速通道下载大文件内容
+                // 通过极速 CDN 管道下载 3.45 MB 的超大文件数据
                 let response = await fetch(cdnUrl);
                 if (response.status === 200) {
                     productList = await response.json();
-                    console.log("成功通过大文件通道加载了 " + productList.length + " 个商品！");
+                    console.log("大文件读取成功！共加载了 " + productList.length + " 个商品。");
                 }
             } catch (e) { 
-                console.log("读取云端数据失败，尝试备用方案...", e); 
+                console.log("云端拉取中...", e); 
             }
             renderAll();
         }
@@ -543,7 +539,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Update display block container to letterbox format with safe fill", content: base64Content };
+            const bodyData = { message: "Optimized script with strong large-file CDN support", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -555,7 +551,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！现在卡片已经强制等比居中留白填充了！");
+                    alert("⚡ 云端同步成功！请等待 1 分钟 CDN 更新，然后刷新网页即可看到全部数据！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
