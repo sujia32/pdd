@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>敲豆模板价格表</title>
+    <title>拼豆定制作品选款与价格公示表</title>
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
         header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
@@ -27,18 +27,33 @@
         .admin-login-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
         .admin-login-btn:hover { background: rgba(255,255,255,0.4); }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
-        #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 2px dashed #ee5253; }
-        .admin-title { font-size: 16px; font-weight: bold; color: #ee5253; margin-bottom: 15px; }
+        
+        /* 🛠️ 新版后台大面板 */
+        #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #ee5253; }
+        .admin-title { font-size: 16px; font-weight: bold; color: #ee5253; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* 功能标签切换栏 */
+        .tab-group { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+        .tab-btn { padding: 8px 16px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .tab-btn.active { background: #ee5253; color: white; border-color: #ee5253; }
+        
+        .panel-section { display: none; }
+        .panel-section.active { display: block; }
+
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 15px; }
         .form-group { display: flex; flex-direction: column; gap: 4px; }
         label { font-size: 12px; color: #666; font-weight: bold; }
         input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
-        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
         .btn-add { background-color: #ee5253; color: white; border: none; cursor: pointer; font-weight: bold; }
-        .btn-sync { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-sync { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; padding: 10px 20px; font-size: 15px; }
+        .btn-edit-inline { background-color: #30a1ff; color: white; border: none; cursor: pointer; font-weight: bold; padding: 6px; font-size: 12px; width: 100%; border-radius: 4px; margin-top: 5px; }
+        
+        /* 🛒 基础卡片流 */
         .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
         @media (min-width: 600px) { .template-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; } }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12 rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-3px); }
         .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
@@ -52,8 +67,12 @@
         .price-value.has-beads { color: #ff4757; font-size: 16px; }
         .price-value.no-beads { color: #ffa502; font-size: 15px; }
         .price-value::before { content: "￥"; font-size: 11px; }
-        .btn-delete { display: none; position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; justify-content: center; align-items: center; font-size: 12px; z-index: 10; }
+        
+        /* ✕ 删除按钮单独控制 */
+        .btn-delete { display: none; position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
+        
+        .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
@@ -71,47 +90,67 @@
     </header>
 
     <div class="container">
-        <!-- 商家后台 -->
+        <!-- 🛠️ 终极多功能商家后台 -->
         <div id="admin-panel">
-            <div class="admin-title">🛠️ GitHub 安全实时同步面板 (双版本价格版)</div>
-            <div class="form-grid" style="border-bottom: 1px dashed #eee; padding-bottom: 15px; margin-bottom: 15px;">
-                <div class="form-group" style="grid-column: 1/-1;"><label style="color:#ff4757;">🔑 核心安全验证：请填入您的真实 GitHub Token (ghp_开头的那个)</label>
-                <input type="password" id="secure-token" placeholder="在这里粘贴您的密码钥匙"></div>
+            <div class="admin-title">
+                <span>🛠️ 拼豆后台云管理系统</span>
+                <button class="btn-sync" onclick="saveToGitHub()">⚡ 点击保存所有更改并同步云端</button>
             </div>
-            <div class="form-grid">
-                <div class="form-group"><label>1. 上传图片</label><input type="file" id="prod-img" accept="image/*"></div>
-                <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
-                <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
-                <!-- 🔄 输入框顺序调换：无豆子换到了第 4 项，有豆子变成了第 5 项 -->
-                <div class="form-group"><label>4. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
-                <div class="form-group"><label>5. 有豆子价格 (元)</label><input type="number" id="prod-price-has" placeholder="0.00" step="0.01"></div>
+            
+            <div class="form-group" style="margin-bottom: 15px;"><label style="color:#ff4757;">🔑 安全验证：首次使用请粘贴您的 GitHub Token</label>
+            <input type="password" id="secure-token" placeholder="代码中无痕迹，自动记忆保护"></div>
+
+            <!-- 切换标签栏 -->
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="switchTab('add')">➕ 添加新商品</button>
+                <button class="tab-btn" onclick="switchTab('edit')">✏️ 修改已有商品</button>
+                <button class="tab-btn" onclick="switchTab('delete')">✕ 下架/删除商品</button>
             </div>
-            <div class="btn-group">
-                <button class="btn-add" onclick="addProduct()">➕ 添加到临时列表</button>
-                <button class="btn-sync" onclick="saveToGitHub()">⚡ 一键保存更改（直接同步GitHub）</button>
+
+            <!-- 1. 添加/修改输入核心表单 -->
+            <div id="section-form" class="panel-section active">
+                <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中，修改完记得点击下方的“确认修改”按钮</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>1. 作品图片 (不重新选则保持原图)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
+                    <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
+                    <div class="form-group"><label>4. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
+                    <div class="form-group"><label>5. 有豆子价格 (元)</label><input type="number" id="prod-price-has" placeholder="0.00" step="0.01"></div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-add" id="submit-btn" onclick="handleSubmit()">➕ 确定添加到临时列表</button>
+                    <button class="tab-btn" id="cancel-btn" style="display:none; background:#6c757d; color:white;" onclick="exitEditMode()">取消修改</button>
+                </div>
+            </div>
+
+            <!-- 2. 二级预览区（专门存放修改和删除的预览） -->
+            <div id="section-preview" class="panel-section">
+                <div style="font-size:13px; color:#666; margin-bottom:10px;" id="preview-title-hint">请在下方选择商品进行操作：</div>
+                <div class="template-grid" id="admin-preview-container"></div>
             </div>
         </div>
+        
+        <!-- 🌍 真正给全网客户展示的总大厅 -->
+        <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
         <div class="template-grid" id="view-container"></div>
     </div>
 
     <script>
-        // =========================================================================
-        // ⚠️ 商家基础配置
-        // =========================================================================
-        const ADMIN_PASSWORD = "404832";               // 你的网页登录密码
+        const ADMIN_PASSWORD = "123";               // 你的网页登录密码
         const GITHUB_USER  = "sujia32";             // 你的 GitHub 用户名
         const GITHUB_REPO  = "pdd";                  // 你的 仓库名字
-        // =========================================================================
-
         const FILE_PATH = "data.json"; 
+
         let productList = [];
         let currentBase64Img = "";
         let isAdminMode = false;
         let fileSha = "";
+        
+        let currentTab = 'add'; // 当前处于哪个后台功能标签
+        let editingProductId = null; // 正在修改的商品ID
 
         window.onload = loadDataFromCloud;
 
-        // 加载云端数据
         async function loadDataFromCloud() {
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
             try {
@@ -122,10 +161,8 @@
                     let content = decodeURIComponent(escape(atob(resData.content)));
                     productList = JSON.parse(content);
                 }
-            } catch (e) {
-                console.log("云端暂时没有商品数据文件");
-            }
-            renderProducts();
+            } catch (e) { console.log("云端暂时没有商品数据"); }
+            renderAll();
         }
 
         function loginAdmin() {
@@ -133,12 +170,41 @@
             if (pass === ADMIN_PASSWORD) {
                 isAdminMode = true;
                 document.getElementById('admin-panel').style.display = 'block';
-                document.querySelectorAll('.btn-delete').forEach(btn => btn.style.display = 'flex');
                 if(localStorage.getItem('gh_tk')) {
                     document.getElementById('secure-token').value = localStorage.getItem('gh_tk');
                 }
-                alert("进入安全编辑模式，请在上方输入你的 GitHub Token 密钥。");
+                switchTab('add'); // 登录默认进入添加模式
             } else if (pass !== null) { alert("密码错误！"); }
+        }
+
+        // 核心标签功能切换器
+        function switchTab(tabName) {
+            currentTab = tabName;
+            exitEditMode(); // 切换功能时自动清空编辑状态
+            
+            // 切换高亮按钮
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const sectionForm = document.getElementById('section-form');
+            const sectionPreview = document.getElementById('section-preview');
+            const hint = document.getElementById('preview-title-hint');
+
+            if (tabName === 'add') {
+                sectionForm.className = "panel-section active";
+                sectionPreview.className = "panel-section";
+                document.getElementById('submit-btn').innerHTML = "➕ 确定添加到临时列表";
+            } else if (tabName === 'edit') {
+                sectionForm.className = "panel-section";
+                sectionPreview.className = "panel-section active";
+                hint.innerHTML = "✏️ <b>修改模式：</b> 点击商品下方的【⚙️ 修改参数】即可重新编辑商品。";
+                renderAdminPreview();
+            } else if (tabName === 'delete') {
+                sectionForm.className = "panel-section";
+                sectionPreview.className = "panel-section active";
+                hint.innerHTML = "✕ <b>下架删除模式：</b> 点击商品右上角的【✕】红色按钮即可删除该商品。";
+                renderAdminPreview();
+            }
         }
 
         document.getElementById('prod-img').addEventListener('change', function(e) {
@@ -148,25 +214,72 @@
             reader.readAsDataURL(file);
         });
 
-        function addProduct() {
+        // 处理添加和修改的确定点击
+        function handleSubmit() {
             const name = document.getElementById('prod-name').value.trim();
             const size = document.getElementById('prod-size').value.trim();
-            const priceHas = document.getElementById('prod-price-has').value.trim();
             const priceNo = document.getElementById('prod-price-no').value.trim();
+            const priceHas = document.getElementById('prod-price-has').value.trim();
+
+            if (!name || !size || !priceNo || !priceHas) { alert("请填齐文字和价格信息！"); return; }
+
+            if (editingProductId === null) {
+                // 1. 【新增模式】
+                if (!currentBase64Img) { alert("请上传一张作品图片！"); return; }
+                productList.push({ 
+                    id: Date.now(), name: name, size: size, 
+                    priceNo: parseFloat(priceNo).toFixed(2), priceHas: parseFloat(priceHas).toFixed(2), 
+                    image: currentBase64Img 
+                });
+                alert("🎉 已成功添加到下方客户展厅（临时），可以继续添加，最后记得点右上角【绿色同步按钮】发给GitHub！");
+            } else {
+                // 2. 【编辑修改模式】
+                const index = productList.findIndex(item => item.id === editingProductId);
+                if (index !== -1) {
+                    productList[index].name = name;
+                    productList[index].size = size;
+                    productList[index].priceNo = parseFloat(priceNo).toFixed(2);
+                    productList[index].priceHas = parseFloat(priceHas).toFixed(2);
+                    if (currentBase64Img) {
+                        productList[index].image = currentBase64Img; // 如果重新选了图就换图，没选就用原图
+                    }
+                }
+                alert("✏️ 商品修改成功！已更新到临时列表。");
+                switchTab('edit'); // 返回修改预览列表
+            }
             
-            if (!currentBase64Img || !name || !size || !priceHas || !priceNo) { alert("请填齐所有信息，包含两个版本的价格！"); return; }
-            
-            productList.push({ 
-                id: Date.now(), 
-                name: name, 
-                size: size, 
-                priceHas: parseFloat(priceHas).toFixed(2), 
-                priceNo: parseFloat(priceNo).toFixed(2), 
-                image: currentBase64Img 
-            });
-            
-            renderProducts();
-            
+            clearInputs();
+            renderAll();
+        }
+
+        // 点击商品下的修改，进入编辑状态
+        function startEditProduct(id) {
+            const prod = productList.find(item => item.id === id);
+            if (!prod) return;
+
+            editingProductId = id;
+            document.getElementById('section-form').className = "panel-section active";
+            document.getElementById('section-preview').className = "panel-section";
+            document.getElementById('edit-mode-indicator').style.display = "block";
+            document.getElementById('cancel-btn').style.display = "inline-block";
+            document.getElementById('submit-btn').innerHTML = "⚙️ 确认修改该商品信息";
+
+            // 反填数据
+            document.getElementById('prod-name').value = prod.name;
+            document.getElementById('prod-size').value = prod.size;
+            document.getElementById('prod-price-no').value = prod.priceNo;
+            document.getElementById('prod-price-has').value = prod.priceHas;
+            currentBase64Img = ""; // 图片置空，如果不选新图就用老的
+        }
+
+        function exitEditMode() {
+            editingProductId = null;
+            document.getElementById('edit-mode-indicator').style.display = "none";
+            document.getElementById('cancel-btn').style.display = "none";
+            clearInputs();
+        }
+
+        function clearInputs() {
             document.getElementById('prod-name').value = ""; 
             document.getElementById('prod-size').value = ""; 
             document.getElementById('prod-price-has').value = ""; 
@@ -176,37 +289,61 @@
         }
 
         function deleteProduct(id) {
-            productList = productList.filter(item => item.id !== id);
-            renderProducts();
+            if(confirm("确定要下架删除这个拼豆商品吗？")) {
+                productList = productList.filter(item => item.id !== id);
+                renderAll();
+                renderAdminPreview();
+            }
         }
 
-        function renderProducts() {
+        // 渲染大厅和后台预览
+        function renderAll() {
+            // 渲染全网公开大厅
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
             
             productList.forEach(prod => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                
                 const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
                 const displayNo = prod.priceNo ? prod.priceNo : "0.00";
 
                 card.innerHTML = `
-                    <button class="btn-delete" style="display: ${isAdminMode ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
                     <div class="card-info">
                         <h3 class="card-name">${prod.name}</h3>
                         <div class="card-size">📏 尺寸：${prod.size}</div>
                         <div class="price-container">
-                            <div class="price-line">
-                                <span class="price-label">⚪ 无豆子版本</span>
-                                <span class="price-value no-beads">${displayNo}</span>
-                            </div>
-                            <div class="price-line">
-                                <span class="price-label">🟢 有豆子版本</span>
-                                <span class="price-value has-beads">${displayHas}</span>
-                            </div>
+                            <div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${displayNo}</span></div>
+                            <div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${displayHas}</span></div>
                         </div>
+                    </div>`;
+                container.appendChild(card);
+            });
+        }
+
+        // 专门渲染后台的“修改/删除”专属预览区
+        function renderAdminPreview() {
+            const container = document.getElementById('admin-preview-container');
+            container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品可供管理 ✨</div>' : "";
+            
+            productList.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
+                const displayNo = prod.priceNo ? prod.priceNo : "0.00";
+
+                card.innerHTML = `
+                    <button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
+                    <div class="img-wrapper"><img src="${prod.image}"></div>
+                    <div class="card-info">
+                        <h3 class="card-name">${prod.name}</h3>
+                        <div class="card-size">📏 尺寸：${prod.size}</div>
+                        <div class="price-container">
+                            <div class="price-line"><span class="price-label">⚪ 无豆</span><span class="price-value no-beads">${displayNo}</span></div>
+                            <div class="price-line"><span class="price-label">🟢 有豆</span><span class="price-value has-beads">${displayHas}</span></div>
+                        </div>
+                        ${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 点击修改参数</button>` : ''}
                     </div>`;
                 container.appendChild(card);
             });
@@ -214,15 +351,13 @@
 
         async function saveToGitHub() {
             const userToken = document.getElementById('secure-token').value.trim();
-            if(!userToken) { alert("请在上方红色提示处，粘贴填入你的 GitHub Token 密钥！"); return; }
-            
+            if(!userToken) { alert("请在上方粘贴填入你的 GitHub Token 密钥！"); return; }
             localStorage.setItem('gh_tk', userToken);
 
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-
-            const bodyData = { message: "Perfect order update", content: base64Content };
+            const bodyData = { message: "Advanced ERP multi-mode update", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -234,7 +369,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ GitHub 保存成功！填价格和看价格的顺序已经完美同步！\n\n稍等1分钟左右重新打开链接即可看到效果。");
+                    alert("⚡ 云端同步成功！所有的【新增/修改/删除】均已同步到GitHub！\n\n等一小会儿全网链接就会彻底刷新！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
