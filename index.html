@@ -119,9 +119,9 @@
             box-sizing: border-box;
         }
 
-        .zoom-controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; align-items: center; }
-        .zoom-btn { background: #f0f2f5; border: 1px solid #ccc; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 16px; cursor: pointer; user-select: none; }
-        .zoom-btn:active { background: #ddd; }
+        /* 🎛️ 顺滑拉动条新样式 */
+        .zoom-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 8px; }
+        .zoom-slider { width: 150px; cursor: pointer; accent-color: #ee5253; height: 6px; }
 
         .crop-actions { display: flex; justify-content: space-between; gap: 10px; }
         .crop-btn-cancel { background: #6c757d; color: white; border: none; padding: 10px 0; width: 45%; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
@@ -141,6 +141,7 @@
     </header>
 
     <div class="container">
+        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -159,7 +160,7 @@
             <div id="section-form" class="panel-section active">
                 <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (全原生范围截取)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片 (支持鼠标拉动/滚轮缩放)</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label style="color:#ffa502;">4. 模板重 (克数 g)</label><input type="number" id="prod-grams" placeholder="请输入克数" step="0.01"></div>
@@ -177,12 +178,14 @@
             </div>
         </div>
         
+        <!-- 🌍 客户大厅 -->
         <div id="client-display-section">
             <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
             <div class="template-grid" id="view-container"></div>
         </div>
     </div>
 
+    <!-- ✂️ 纯原生免插件图片裁剪弹窗 -->
     <div id="crop-modal">
         <div class="crop-container">
             <div class="crop-title">📐 调整正方形截取范围</div>
@@ -192,10 +195,10 @@
                 <div class="crop-outline"></div>
             </div>
             
+            <!-- 🎛️ 换成了顺滑鼠标拉动条 -->
             <div class="zoom-controls">
-                <button class="zoom-btn" onclick="adjustZoom(-0.1)">➖ 缩小</button>
-                <span style="font-size:13px; color:#666; font-weight:bold;">画面缩放</span>
-                <button class="zoom-btn" onclick="adjustZoom(0.1)">➕ 放大</button>
+                <span style="font-size:13px; color:#555; font-weight:bold;">🤏 鼠标拉动缩放：</span>
+                <input type="range" id="crop-zoom-slider" class="zoom-slider" min="0.1" max="3" step="0.01">
             </div>
             
             <div class="crop-actions">
@@ -316,6 +319,12 @@
                     imgX = (260 - originalImgWidth * imgScale) / 2;
                     imgY = (260 - originalImgHeight * imgScale) / 2;
                     
+                    // 🎛️ 动态初始化并配置鼠标拉动条的上下限范围
+                    const slider = document.getElementById('crop-zoom-slider');
+                    slider.min = (imgScale * 0.2).toFixed(2); 
+                    slider.max = (imgScale * 5.0).toFixed(2); 
+                    slider.value = imgScale;
+
                     updateImgTransform();
                     document.getElementById('crop-modal').style.display = 'flex';
                 };
@@ -326,11 +335,6 @@
         function updateImgTransform() {
             const img = document.getElementById('crop-target-img');
             img.style.transform = `translate(${imgX}px, ${imgY}px) scale(${imgScale})`;
-        }
-
-        function adjustZoom(amount) {
-            imgScale = Math.max(0.1, imgScale + amount);
-            updateImgTransform();
         }
 
         const cropBox = document.getElementById('crop-box');
@@ -361,6 +365,26 @@
         cropBox.addEventListener('touchstart', dragStart);
         window.addEventListener('touchmove', dragMove);
         window.addEventListener('touchend', dragEnd);
+
+        // 🎛️ 监听鼠标拉动条的左右滑动
+        document.getElementById('crop-zoom-slider').addEventListener('input', function(e) {
+            imgScale = parseFloat(e.target.value);
+            updateImgTransform();
+        });
+
+        // 🖱️ 额外绑定：在裁剪框上滚动鼠标中键轮，也可以直接无级缩放画面
+        cropBox.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            let delta = e.deltaY > 0 ? -0.04 : 0.04; // 滚动精度
+            const slider = document.getElementById('crop-zoom-slider');
+            let newVal = parseFloat(slider.value) + delta;
+            
+            // 限制安全范围并同步更新拉动条
+            newVal = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), newVal));
+            slider.value = newVal;
+            imgScale = newVal;
+            updateImgTransform();
+        }, { passive: false });
 
         function confirmCrop() {
             const img = document.getElementById('crop-target-img');
@@ -434,13 +458,12 @@
             const grams = document.getElementById('prod-grams').value.trim();
             const beads = document.getElementById('prod-beads-count').value.trim();
 
-            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数和豆数！"); return; }
+            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数 and 豆数！"); return; }
 
             const calculated = calculatePrices(grams, beads);
 
             if (editingProductId === null) {
                 if (!currentBase64Img) { alert("请上传并截取一张作品图片范围！"); return; }
-                // 🚀 保留有用的置顶逻辑：unshift 写入，永远最前端显示
                 productList.unshift({ 
                     id: Date.now(), name: name, size: size, 
                     grams: grams, beads: beads, 
@@ -509,7 +532,6 @@
             }
         }
 
-        // 🚀 恢复最纯粹、最稳定的大厅渲染逻辑
         function renderAll() {
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
@@ -568,7 +590,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Rollback to standard view layout, keep unshift", content: base64Content };
+            const bodyData = { message: "Add smooth custom slider and wheel zoom into crop modal", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -580,7 +602,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！页面结构已恢复最初的稳定版，最新添加的商品会自动排在第一位！");
+                    alert("⚡ 云端同步成功！裁剪截取现已支持鼠标滑动及滚轮无级变速缩放！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
