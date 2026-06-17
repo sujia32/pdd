@@ -6,8 +6,11 @@
     <title>拼豆定制作品选款与价格公示表</title>
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
+        /* 🤫 删除了原有的右上角绝对定位按钮样式，保持头部完全干净清爽 */
         header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
-        h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+        
+        /* 🎯 给大标题加了一个手势指针（可选），让你知道这里是暗号触发点 */
+        h1 { margin: 0; font-size: 22px; letter-spacing: 1px; cursor: pointer; user-select: none; -webkit-user-select: none; }
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         
         .notice-box { 
@@ -24,8 +27,6 @@
         }
         .notice-line { display: flex; align-items: center; gap: 6px; }
 
-        .admin-login-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-        .admin-login-btn:hover { background: rgba(255,255,255,0.4); }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
         
         #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #ee5253; }
@@ -55,22 +56,7 @@
         .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* 🎨 新增的精美数字序号标签样式 */
-        .number-badge { 
-            position: absolute; 
-            top: 8px; 
-            left: 8px; 
-            background: rgba(0, 0, 0, 0.6); 
-            color: white; 
-            padding: 3px 8px; 
-            font-size: 11px; 
-            font-weight: bold; 
-            border-radius: 20px; 
-            z-index: 5;
-            letter-spacing: 0.5px;
-            backdrop-filter: blur(2px);
-        }
-
+        .number-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; font-size: 11px; font-weight: bold; border-radius: 20px; z-index: 5; letter-spacing: 0.5px; backdrop-filter: blur(2px); }
         .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
         .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
         .card-size { font-size: 12px; color: #888; margin-top: 2px; margin-bottom: 4px; }
@@ -84,26 +70,22 @@
         
         .btn-delete { display: none; position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
-        
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>✨ 敲豆模板价格表 ✨</h1>
+        <h1 onclick="triggerSecretAdmin()">✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
         
         <div class="notice-box">
             <div class="notice-line">⚪ <b>无豆子版本：</b> 只有底板</div>
             <div class="notice-line">🟢 <b>有豆子版本：</b> 底板 + 豆子 + 锤子 + 取豆器</div>
         </div>
-
-        <button class="admin-login-btn" onclick="loginAdmin()">⚙️ 商家后台</button>
     </header>
 
     <div class="container">
-        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -119,11 +101,10 @@
                 <button class="tab-btn" onclick="switchTab('delete')">✕ 下架/删除商品</button>
             </div>
 
-            <!-- 1. 添加/修改表单区 -->
             <div id="section-form" class="panel-section active">
-                <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中，修改完记得点击下方的“确认修改”按钮</div>
+                <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (不重新选则保持原图)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label>4. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
@@ -135,14 +116,12 @@
                 </div>
             </div>
 
-            <!-- 2. 修改/删除预览区 -->
             <div id="section-preview" class="panel-section">
                 <div style="font-size:13px; color:#666; margin-bottom:10px;" id="preview-title-hint">请在下方选择商品进行操作：</div>
                 <div class="template-grid" id="admin-preview-container"></div>
             </div>
         </div>
         
-        <!-- 🌍 客户大厅 -->
         <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
         <div class="template-grid" id="view-container"></div>
     </div>
@@ -161,7 +140,25 @@
         let currentTab = 'add'; 
         let editingProductId = null; 
 
+        // 🤫 计数器：记录用户连续点击标题的次数
+        let clickCount = 0;
+        let clickTimer = null;
+
         window.onload = loadDataFromCloud;
+
+        // 🤫 暗号核心逻辑：5下连击才会弹出密码输入框
+        function triggerSecretAdmin() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            
+            // 如果 2 秒内没点完，计数清零（防止客户无意中慢慢悠悠点够次数）
+            clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+
+            if (clickCount === 5) {
+                clickCount = 0; // 触发后清零
+                loginAdmin();
+            }
+        }
 
         async function loadDataFromCloud() {
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
@@ -178,7 +175,7 @@
         }
 
         function loginAdmin() {
-            const pass = prompt("请输入商家管理密码：");
+            const pass = prompt("🔑 暗号正确！请输入商家管理密码：");
             if (pass === ADMIN_PASSWORD) {
                 isAdminMode = true;
                 document.getElementById('admin-panel').style.display = 'block';
@@ -186,6 +183,7 @@
                     document.getElementById('secure-token').value = localStorage.getItem('gh_tk');
                 }
                 switchTab('add'); 
+                alert("进入安全编辑模式。");
             } else if (pass !== null) { alert("密码错误！"); }
         }
 
@@ -194,7 +192,16 @@
             exitEditMode(); 
             
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            // 兼容点击触发或代码触发的事件源高亮
+            if(event && event.target && event.target.classList.contains('tab-btn')) {
+                event.target.classList.add('active');
+            } else {
+                // 如果是强制代码切换，手动给第一个高亮
+                const btns = document.querySelectorAll('.tab-btn');
+                if(tabName === 'add') btns[0].classList.add('active');
+                if(tabName === 'edit') btns[1].classList.add('active');
+                if(tabName === 'delete') btns[2].classList.add('active');
+            }
 
             const sectionForm = document.getElementById('section-form');
             const sectionPreview = document.getElementById('section-preview');
@@ -295,16 +302,14 @@
             if(confirm("确定要下架删除这个拼豆商品吗？")) {
                 productList = productList.filter(item => item.id !== id);
                 renderAll();
-                renderAdminPreview(); // 删除后立即重新洗牌刷新序号
+                renderAdminPreview(); 
             }
         }
 
-        // 渲染大厅（带动态自动递增序号）
         function renderAll() {
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
             
-            // 使用 index 动态计算第几个，这样无论增删，序号永远都是完美的 1,2,3...
             productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -326,7 +331,6 @@
             });
         }
 
-        // 渲染后台修改/删除预览区（同样带联动序号，方便你核对）
         function renderAdminPreview() {
             const container = document.getElementById('admin-preview-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品可供管理 ✨</div>' : "";
@@ -362,7 +366,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Update with live dynamic numbering system", content: base64Content };
+            const bodyData = { message: "Update with hidden stealth click triggers", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -374,7 +378,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！自动洗牌序号版已发送至 GitHub 部署！");
+                    alert("⚡ 云端同步成功！完美的隐形管理后台已部署！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
