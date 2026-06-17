@@ -98,6 +98,7 @@
     </header>
 
     <div class="container">
+        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -134,6 +135,7 @@
             </div>
         </div>
         
+        <!-- 🌍 客户大厅 -->
         <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
         <div class="template-grid" id="view-container"></div>
     </div>
@@ -191,12 +193,10 @@
             } else if (pass !== null) { alert("密码错误！"); }
         }
 
-        // 🧮 修正版核心定价算法
         function calculatePrices(grams, beads) {
             grams = parseFloat(grams) || 0;
             beads = parseInt(beads) || 0;
 
-            // 1. 无豆子价格
             let baseNoBeads = grams * 0.1 + 2 + 0.3;
             let noBeadsFinal = 0;
             
@@ -205,12 +205,11 @@
             let firstDecimalDigit1 = parseInt(noBeadsStr.charAt(dotIdx1 + 1));
 
             if (firstDecimalDigit1 >= 1 && firstDecimalDigit1 <= 4) {
-                noBeadsFinal = Math.floor(baseNoBeads) + 1; // 四舍：舍去后 + 1
+                noBeadsFinal = Math.floor(baseNoBeads) + 1;
             } else {
-                noBeadsFinal = Math.ceil(baseNoBeads) + 0.5; // 五入或整点：入了后再加 0.5
+                noBeadsFinal = Math.ceil(baseNoBeads) + 0.5;
             }
 
-            // 2. 有豆子价格
             let baseHasBeads = noBeadsFinal + beads * 0.5 * 0.08;
             let hasBeadsFinal = 0;
 
@@ -219,9 +218,8 @@
             let firstDecimalDigit2 = parseInt(hasBeadsStr.charAt(dotIdx2 + 1));
 
             if (firstDecimalDigit2 >= 1 && firstDecimalDigit2 <= 4) {
-                hasBeadsFinal = Math.floor(baseHasBeads); // 四舍：舍去保留整数
+                hasBeadsFinal = Math.floor(baseHasBeads);
             } else {
-                // 🎯 完美修正：五入（或整点）直接进位到整数再 - 0.5
                 hasBeadsFinal = Math.ceil(baseHasBeads) - 0.5; 
             }
 
@@ -353,6 +351,7 @@
             }
         }
 
+        // 🌟 核心修改点：大厅列表增加豆数渲染
         function renderAll() {
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
@@ -360,12 +359,15 @@
             productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                // 兼容没有输入过豆数的老商品，如果为空就不显示括号
+                const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : "";
+                
                 card.innerHTML = `
                     <div class="number-badge">No.${index + 1}</div>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
                     <div class="card-info">
                         <h3 class="card-name">${prod.name}</h3>
-                        <div class="card-size">📏 尺寸：${prod.size}</div>
+                        <div class="card-size">📏 尺寸：${prod.size}${beadsText}</div>
                         <div class="price-container">
                             <div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${prod.priceNo}</span></div>
                             <div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${prod.priceHas}</span></div>
@@ -375,6 +377,7 @@
             });
         }
 
+        // 🌟 后台预览同样支持尺寸+豆数直观展示
         function renderAdminPreview() {
             const container = document.getElementById('admin-preview-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品可供管理 ✨</div>' : "";
@@ -382,13 +385,15 @@
             productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : "";
+
                 card.innerHTML = `
                     <div class="number-badge">No.${index + 1}</div>
                     <button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
                     <div class="card-info">
                         <h3 class="card-name">${prod.name}</h3>
-                        <div class="card-size">📏 尺寸：${prod.size}</div>
+                        <div class="card-size">📏 尺寸：${prod.size}${beadsText}</div>
                         <div class="price-container">
                             <div class="price-line"><span class="price-label">⚪ 无豆 (重:${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div>
                             <div class="price-line"><span class="price-label">🟢 有豆 (数:${prod.beads || 0}颗)</span><span class="price-value has-beads">${prod.priceHas}</span></div>
@@ -407,7 +412,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Update beads price rounding formula change to -0.5", content: base64Content };
+            const bodyData = { message: "Display bead count next to dimensions", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -419,7 +424,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！有豆价格五入【减0.5】模型已完美修正上线！");
+                    alert("⚡ 云端同步成功！现在前台已完美展示【尺寸+豆数】！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
