@@ -85,13 +85,13 @@
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
 
-        /* ✂️ Cropper 专业裁剪容器样式优化 */
+        /* ✂️ 裁剪弹窗统一样式优化 */
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
         .crop-container { background: white; padding: 15px; border-radius: 12px; width: 340px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
         .crop-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; color: #333; }
         .crop-subtitle { font-size: 12px; color: #ee5253; margin-bottom: 12px; font-weight: bold; }
         
-        /* 强制限定插件黑盒尺寸，保证在小手机屏也不会变形 */
+        /* 裁剪外盒尺寸定义 */
         .crop-box-wrapper { 
             width: 300px; 
             height: 300px; 
@@ -101,6 +101,10 @@
             overflow: hidden;
         }
         #crop-target-img { max-width: 100%; display: block; }
+
+        /* 🎨 覆盖插件样式，让边框和拉伸块变成显眼的拼豆红 */
+        .cropper-line, .cropper-point { background-color: #ee5253 !important; }
+        .cropper-view-box { outline: 2px solid #ee5253 !important; }
 
         .crop-actions { display: flex; justify-content: space-between; gap: 10px; }
         .crop-btn-cancel { background: #6c757d; color: white; border: none; padding: 10px 0; width: 45%; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
@@ -138,7 +142,7 @@
             <div id="section-form" class="panel-section active">
                 <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (极致稳定：滚轮/双指一捏即可缩放)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片 (用鼠标拉动裁剪框边缘调整大小)</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label style="color:#ffa502;">4. 模板重 (克数 g)</label><input type="number" id="prod-grams" placeholder="请输入克数" step="0.01"></div>
@@ -165,7 +169,7 @@
     <div id="crop-modal">
         <div class="crop-container">
             <div class="crop-title">📐 调整正方形截取范围</div>
-            <div class="crop-subtitle">👍 支持鼠标滚轮滚动 或 手机双指张开捏合缩放</div>
+            <div class="crop-subtitle">🤏 鼠标按住边框的『小方块』即可拉大或拉小</div>
             
             <div class="crop-box-wrapper">
                 <img id="crop-target-img" src="" alt="裁剪目标">
@@ -196,7 +200,6 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        // 🛠️ Cropper 插件实例全局持有者
         let cropperInstance = null;
 
         window.onload = loadDataFromCloud;
@@ -277,7 +280,6 @@
             reader.onload = function(event) {
                 const img = document.getElementById('crop-target-img');
                 
-                // 每次上传新照片，销毁老插件，确保不冲突
                 if (cropperInstance) {
                     cropperInstance.destroy();
                     cropperInstance = null;
@@ -286,19 +288,19 @@
                 img.src = event.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
                 
-                // 🚀 调用专业 Cropper 插件注入底层手势监听
+                // 🚀 配置重构：解封裁剪框拉伸权限
                 cropperInstance = new Cropper(img, {
-                    aspectRatio: 1,          // 强制正方形框
-                    viewMode: 1,             // 限制不能拉到图片外面，保证美观
-                    dragMode: 'move',        // 默认手指/鼠标拖动是移动图片，不是拉画框
-                    guides: true,            // 辅助线
-                    center: true,            // 居中标识
-                    background: false,       // 剔除格子背景
-                    autoCropArea: 0.8,       // 自动选取面积
-                    cropBoxMovable: false,   // 固定裁剪框，只准拖拽拉伸背后的图片（体验最好）
-                    cropBoxResizable: false, // 固定大小不让用户去拽小边角，避免拉变形
-                    zoomOnWheel: true,       // ✨ 电脑端完美响应：鼠标轮滚动无级缩放
-                    zoomOnTouch: true        // ✨ 移动端完美响应：手机双指捏合无级缩放
+                    aspectRatio: 1,          // 锁定 1:1 正方形比例，不让图片拉变形
+                    viewMode: 1,             // 限制框不能超出图片，确保切出来的图完美
+                    dragMode: 'move',        // 默认鼠标点空白处可以拖动背景图片
+                    guides: true,            // 显示九宫格辅助线
+                    center: true,            // 显示中心十字准星
+                    background: false,       // 去掉格子网格背景
+                    autoCropArea: 0.8,       // 初始裁剪框大小
+                    cropBoxMovable: true,    // ✨ 允许：裁剪框整体可以用鼠标移动位置
+                    cropBoxResizable: true,  // ✨ 允许：裁剪框的边缘和四周小方块可以直接用鼠标按住拉大拉小
+                    zoomOnWheel: true,       // 允许：鼠标滚轮也能同时缩放
+                    zoomOnTouch: true        // 允许：手机上双指也能同时缩放
                 });
             };
             reader.readAsDataURL(file);
@@ -307,7 +309,6 @@
         function confirmCrop() {
             if (!cropperInstance) return;
             
-            // 自动无痕高保真精细提取
             const canvas = cropperInstance.getCroppedCanvas({
                 width: 500,
                 height: 500,
@@ -318,7 +319,6 @@
             if (canvas) {
                 currentBase64Img = canvas.toDataURL('image/jpeg', 0.9);
                 
-                // 功成身退，销毁释放内存空间
                 cropperInstance.destroy();
                 cropperInstance = null;
                 
@@ -511,7 +511,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Integrate professional cropperjs for perfect zoom support", content: base64Content };
+            const bodyData = { message: "Unlock crop box resizable handler for drag zoom", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -523,7 +523,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！现在裁剪图片完全支持高精度鼠标滚轮与手机双指缩放！");
+                    alert("⚡ 云端同步成功！现在裁剪框四个角可以随意拉拽调整范围啦！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
