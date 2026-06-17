@@ -87,7 +87,8 @@
         /* ✂️ 原生免插件裁剪弹窗样式 */
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; touch-action: none; }
         .crop-container { background: white; padding: 15px; border-radius: 12px; width: 320px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
-        .crop-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #333; }
+        .crop-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #333; }
+        .crop-subtitle { font-size: 11px; color: #ee5253; margin-bottom: 10px; font-weight: bold; }
         
         .crop-box { 
             position: relative; 
@@ -118,10 +119,6 @@
             pointer-events: none; 
             box-sizing: border-box;
         }
-
-        /* 🎛️ 顺滑拉动条新样式 */
-        .zoom-controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 18px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 8px; }
-        .zoom-slider { width: 150px; cursor: pointer; accent-color: #ee5253; height: 6px; }
 
         .crop-actions { display: flex; justify-content: space-between; gap: 10px; }
         .crop-btn-cancel { background: #6c757d; color: white; border: none; padding: 10px 0; width: 45%; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
@@ -160,7 +157,7 @@
             <div id="section-form" class="panel-section active">
                 <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (支持鼠标拉动/滚轮缩放)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片 (直接在图上用滚轮/双指缩放)</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label style="color:#ffa502;">4. 模板重 (克数 g)</label><input type="number" id="prod-grams" placeholder="请输入克数" step="0.01"></div>
@@ -189,16 +186,11 @@
     <div id="crop-modal">
         <div class="crop-container">
             <div class="crop-title">📐 调整正方形截取范围</div>
+            <div class="crop-subtitle">💡 鼠标拖动可移位，滚轮或双指捏合可无级缩放</div>
             
             <div class="crop-box" id="crop-box">
                 <img id="crop-target-img" src="" alt="裁剪目标">
                 <div class="crop-outline"></div>
-            </div>
-            
-            <!-- 🎛️ 换成了顺滑鼠标拉动条 -->
-            <div class="zoom-controls">
-                <span style="font-size:13px; color:#555; font-weight:bold;">🤏 鼠标拉动缩放：</span>
-                <input type="range" id="crop-zoom-slider" class="zoom-slider" min="0.1" max="3" step="0.01">
             </div>
             
             <div class="crop-actions">
@@ -225,10 +217,15 @@
         let clickCount = 0;
         let clickTimer = null;
 
-        let imgX = 10, imgY = 10, imgScale = 1.0;
+        // 📐 核心位置、缩放变量
+        let imgX = 0, imgY = 0, imgScale = 1.0;
         let isDragging = false;
         let startX = 0, startY = 0;
         let originalImgWidth = 0, originalImgHeight = 0;
+        
+        // 📱 双指触控缩放专用辅助计算变量
+        let startTouchDistance = 0;
+        let startTouchScale = 1.0;
 
         window.onload = loadDataFromCloud;
 
@@ -319,12 +316,6 @@
                     imgX = (260 - originalImgWidth * imgScale) / 2;
                     imgY = (260 - originalImgHeight * imgScale) / 2;
                     
-                    // 🎛️ 动态初始化并配置鼠标拉动条的上下限范围
-                    const slider = document.getElementById('crop-zoom-slider');
-                    slider.min = (imgScale * 0.2).toFixed(2); 
-                    slider.max = (imgScale * 5.0).toFixed(2); 
-                    slider.value = imgScale;
-
                     updateImgTransform();
                     document.getElementById('crop-modal').style.display = 'flex';
                 };
@@ -339,7 +330,18 @@
 
         const cropBox = document.getElementById('crop-box');
         
+        // 🚀 彻底重构多端统一的拖拽交互算法
         function dragStart(e) {
+            // 手机双指缩放触发时，不进行单指拖拽移位
+            if (e.touches && e.touches.length >= 2) {
+                isDragging = false;
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                startTouchDistance = Math.sqrt(dx * dx + dy * dy);
+                startTouchScale = imgScale;
+                return;
+            }
+            
             isDragging = true;
             let clientX = e.clientX || (e.touches && e.touches[0].clientX);
             let clientY = e.clientY || (e.touches && e.touches[0].clientY);
@@ -348,7 +350,22 @@
         }
 
         function dragMove(e) {
+            // 处理手机移动端的双指捏合缩放
+            if (e.touches && e.touches.length >= 2) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const currentDistance = Math.sqrt(dx * dx + dy * dy);
+                if (startTouchDistance > 0) {
+                    let factor = currentDistance / startTouchDistance;
+                    imgScale = Math.max(0.05, Math.min(10, startTouchScale * factor));
+                    updateImgTransform();
+                }
+                return;
+            }
+
             if (!isDragging) return;
+            e.preventDefault();
             let clientX = e.clientX || (e.touches && e.touches[0].clientX);
             let clientY = e.clientY || (e.touches && e.touches[0].clientY);
             imgX = clientX - startX;
@@ -356,33 +373,32 @@
             updateImgTransform();
         }
 
-        function dragEnd() { isDragging = false; }
+        function dragEnd() { 
+            isDragging = false; 
+            startTouchDistance = 0;
+        }
 
+        // 统一监听移动端与桌面端的输入事件
         cropBox.addEventListener('mousedown', dragStart);
-        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('mousemove', dragMove, { passive: false });
         window.addEventListener('mouseup', dragEnd);
 
-        cropBox.addEventListener('touchstart', dragStart);
-        window.addEventListener('touchmove', dragMove);
+        cropBox.addEventListener('touchstart', dragStart, { passive: false });
+        window.addEventListener('touchmove', dragMove, { passive: false });
         window.addEventListener('touchend', dragEnd);
 
-        // 🎛️ 监听鼠标拉动条的左右滑动
-        document.getElementById('crop-zoom-slider').addEventListener('input', function(e) {
-            imgScale = parseFloat(e.target.value);
-            updateImgTransform();
-        });
-
-        // 🖱️ 额外绑定：在裁剪框上滚动鼠标中键轮，也可以直接无级缩放画面
+        // 🖱️ 完美兼容桌面端：在黑色裁剪框里滚动中键轮，直接精准放大缩小
         cropBox.addEventListener('wheel', function(e) {
             e.preventDefault();
-            let delta = e.deltaY > 0 ? -0.04 : 0.04; // 滚动精度
-            const slider = document.getElementById('crop-zoom-slider');
-            let newVal = parseFloat(slider.value) + delta;
+            let zoomSpeed = 0.05; // 缩放平滑系数
             
-            // 限制安全范围并同步更新拉动条
-            newVal = Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), newVal));
-            slider.value = newVal;
-            imgScale = newVal;
+            // 向上滚轮放大，向下缩短缩小
+            if (e.deltaY < 0) {
+                imgScale += zoomSpeed;
+            } else {
+                imgScale = Math.max(0.05, imgScale - zoomSpeed);
+            }
+            
             updateImgTransform();
         }, { passive: false });
 
@@ -458,7 +474,7 @@
             const grams = document.getElementById('prod-grams').value.trim();
             const beads = document.getElementById('prod-beads-count').value.trim();
 
-            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数 and 豆数！"); return; }
+            if (!name || !size || !grams || !beads) { alert("请填齐文字、尺寸、克数和豆数！"); return; }
 
             const calculated = calculatePrices(grams, beads);
 
@@ -590,7 +606,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Add smooth custom slider and wheel zoom into crop modal", content: base64Content };
+            const bodyData = { message: "Upgrade crop modal to support drag, wheel and pinch zooming", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -602,7 +618,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！裁剪截取现已支持鼠标滑动及滚轮无级变速缩放！");
+                    alert("⚡ 云端同步成功！现在支持直接在图片上鼠标滚轮或双指捏合无级缩放了！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
