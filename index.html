@@ -397,20 +397,20 @@
             document.getElementById('prod-img').value = "";
         }
 
-        // 控制当前界面的显示状态
+        // 🧠 核心控制：强制根据标签页类型显示或彻底隐藏大厅商品
         function adjustDisplayByTab() {
             const clientSection = document.getElementById('client-display-section');
             if (currentTab === 'add') {
-                clientSection.style.display = 'none'; // 🧠 在添加状态下隐藏大厅商品
+                clientSection.style.display = 'none'; 
             } else {
-                clientSection.style.display = 'block'; // 🧠 修改和删除时显示大厅商品以便对照
+                clientSection.style.display = 'block'; 
             }
         }
 
         function switchTab(tabName) {
             currentTab = tabName;
             exitEditMode(); 
-            adjustDisplayByTab();
+            adjustDisplayByTab(); // 🧠 每次点击Tab按钮都强制刷新隐藏/显示状态
             
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             if(event && event.target && event.target.classList.contains('tab-btn')) {
@@ -455,7 +455,6 @@
 
             if (editingProductId === null) {
                 if (!currentBase64Img) { alert("请上传并截取一张作品图片范围！"); return; }
-                // 🧠 核心改变：使用 unshift 插入到数组最前面，实现最新添加置顶显示
                 productList.unshift({ 
                     id: Date.now(), name: name, size: size, 
                     grams: grams, beads: beads, 
@@ -582,7 +581,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Clean layout and unshift ranking feature added", content: base64Content };
+            const bodyData = { message: "Fix tab navigation client view toggle bug", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -594,7 +593,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！现在添加商品更清爽，且自动置顶！");
+                    alert("⚡ 云端同步成功！现在添加商品时下方的大厅会百分百彻底隐藏了！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
