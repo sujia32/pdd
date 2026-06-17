@@ -54,20 +54,21 @@
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-3px); }
         
-        /* 🛡️ 大厅图片展示区（完美流式自适应长宽） */
+        /* 🛡️ 大厅图片展示区（全新升级：等比居中，完美自动留白填充） */
         .img-wrapper { 
             width: 100%; 
-            background-color: #f8f9fa; 
+            height: 220px;            /* 统一卡片里的图片区域高度，保持大厅整齐 */
+            background-color: #f8f9fa; /* 填充区域的背景颜色（可改成 #ffffff 纯白） */
             display: flex; 
             justify-content: center; 
             align-items: center; 
             overflow: hidden; 
             position: relative; 
-            height: auto; 
         }
         .img-wrapper img { 
             width: 100%; 
-            height: auto; 
+            height: 100%; 
+            object-fit: contain;      /* ✨ 核心：非正方形图片会自动居中，并在四周填充空白，绝不变形 */
             display: block;
             pointer-events: none; 
         } 
@@ -108,13 +109,12 @@
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
 
-        /* ✂️ 自由裁剪弹窗高级重构 */
+        /* ✂️ 自由裁剪弹窗 */
         #crop-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 10px; }
         .crop-container { background: white; padding: 20px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); text-align: center; box-sizing: border-box; }
         .crop-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; color: #333; }
         .crop-subtitle { font-size: 13px; color: #ee5253; margin-bottom: 15px; font-weight: bold; }
         
-        /* ✨ 关键改动：彻底打破 320x320 的死死限制，高度自由弹性伸缩 */
         .crop-box-wrapper { 
             width: 100%; 
             max-height: 60vh; 
@@ -125,7 +125,6 @@
         }
         #crop-target-img { max-width: 100%; display: block; }
 
-        /* 高亮裁剪线颜色 */
         .cropper-line, .cropper-point { background-color: #ee5253 !important; }
         .cropper-view-box { outline: 2px solid #ee5253 !important; }
 
@@ -315,17 +314,16 @@
                 img.src = event.target.result;
                 document.getElementById('crop-modal').style.display = 'flex';
                 
-                // ✨ 核心机制：修改配置，彻底破坏正方形约束逻辑
                 cropperInstance = new Cropper(img, {
-                    aspectRatio: null,        // ✨ 设为 null，明确告诉插件不设定任何初始固定比率
+                    aspectRatio: null,        
                     viewMode: 1,             
                     dragMode: 'move',        
                     guides: true,            
                     center: true,            
                     background: true,       
-                    autoCropArea: 0.6,        // ✨ 设为 0.6，使裁剪框默认只占据中央一部分，把边缘露出来供您任意内推外拉！
+                    autoCropArea: 0.6,        
                     cropBoxMovable: true,    
-                    cropBoxResizable: true,  // 开启改变大小
+                    cropBoxResizable: true,  
                     zoomOnWheel: true,       
                     zoomOnTouch: true        
                 });
@@ -336,7 +334,6 @@
         function confirmCrop() {
             if (!cropperInstance) return;
             
-            // 获取用户手动拉扯出来的真正宽高的 canvas 视图
             const canvas = cropperInstance.getCroppedCanvas({
                 imageSmoothingEnabled: true,
                 imageSmoothingQuality: 'high'
@@ -344,10 +341,8 @@
 
             if (canvas) {
                 currentBase64Img = canvas.toDataURL('image/jpeg', 0.9);
-                
                 cropperInstance.destroy();
                 cropperInstance = null;
-                
                 document.getElementById('crop-modal').style.display = 'none';
                 alert("✨ 任意拉伸截取成功！切图已就绪。");
             } else {
@@ -537,7 +532,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Fix aspect ratio boxing lock issues and unlock free stretching", content: base64Content };
+            const bodyData = { message: "Update display block container to letterbox format with safe fill", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -549,7 +544,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！现在已经彻底解锁自由边缘拉伸了！");
+                    alert("⚡ 云端同步成功！现在卡片已经强制等比居中留白填充了！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
