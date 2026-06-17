@@ -6,10 +6,9 @@
     <title>拼豆定制作品选款与价格公示表</title>
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
-        /* 🤫 删除了原有的右上角绝对定位按钮样式，保持头部完全干净清爽 */
         header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
         
-        /* 🎯 给大标题加了一个手势指针（可选），让你知道这里是暗号触发点 */
+        /* ✨ 秘密暗号触发点：大标题 */
         h1 { margin: 0; font-size: 22px; letter-spacing: 1px; cursor: pointer; user-select: none; -webkit-user-select: none; }
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         
@@ -56,7 +55,22 @@
         .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
         
-        .number-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; font-size: 11px; font-weight: bold; border-radius: 20px; z-index: 5; letter-spacing: 0.5px; backdrop-filter: blur(2px); }
+        /* 🎨 精美数字序号标签（已确保在大厅和后台均生效） */
+        .number-badge { 
+            position: absolute; 
+            top: 8px; 
+            left: 8px; 
+            background: rgba(0, 0, 0, 0.6); 
+            color: white; 
+            padding: 3px 8px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            border-radius: 20px; 
+            z-index: 5;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(2px);
+        }
+
         .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
         .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
         .card-size { font-size: 12px; color: #888; margin-top: 2px; margin-bottom: 4px; }
@@ -76,6 +90,7 @@
 <body>
 
     <header>
+        <!-- 🤫 秘密暗号触发点：连续快速点击这个 H1 标签 5 下 -->
         <h1 onclick="triggerSecretAdmin()">✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
         
@@ -86,6 +101,7 @@
     </header>
 
     <div class="container">
+        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -122,6 +138,7 @@
             </div>
         </div>
         
+        <!-- 🌍 客户大厅 -->
         <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
         <div class="template-grid" id="view-container"></div>
     </div>
@@ -140,22 +157,18 @@
         let currentTab = 'add'; 
         let editingProductId = null; 
 
-        // 🤫 计数器：记录用户连续点击标题的次数
         let clickCount = 0;
         let clickTimer = null;
 
         window.onload = loadDataFromCloud;
 
-        // 🤫 暗号核心逻辑：5下连击才会弹出密码输入框
         function triggerSecretAdmin() {
             clickCount++;
             clearTimeout(clickTimer);
-            
-            // 如果 2 秒内没点完，计数清零（防止客户无意中慢慢悠悠点够次数）
             clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
 
             if (clickCount === 5) {
-                clickCount = 0; // 触发后清零
+                clickCount = 0; 
                 loginAdmin();
             }
         }
@@ -192,11 +205,9 @@
             exitEditMode(); 
             
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            // 兼容点击触发或代码触发的事件源高亮
             if(event && event.target && event.target.classList.contains('tab-btn')) {
                 event.target.classList.add('active');
             } else {
-                // 如果是强制代码切换，手动给第一个高亮
                 const btns = document.querySelectorAll('.tab-btn');
                 if(tabName === 'add') btns[0].classList.add('active');
                 if(tabName === 'edit') btns[1].classList.add('active');
@@ -306,6 +317,7 @@
             }
         }
 
+        // 🛠️ 修复核心：大厅重新加回了序号标签！
         function renderAll() {
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
@@ -366,7 +378,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Update with hidden stealth click triggers", content: base64Content };
+            const bodyData = { message: "Fix numbering badge with hidden admin trigger", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -378,7 +390,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！完美的隐形管理后台已部署！");
+                    alert("⚡ 云端同步成功！隐藏后台+递增序号全部正常运行！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
