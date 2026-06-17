@@ -141,7 +141,6 @@
     </header>
 
     <div class="container">
-        <!-- 🛠️ 商家后台管理系统 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -152,9 +151,9 @@
             <input type="password" id="secure-token" placeholder="代码中无痕迹，自动记忆保护"></div>
 
             <div class="tab-group">
-                <button class="tab-btn active" onclick="switchTab('add')">➕ 添加新商品</button>
-                <button class="tab-btn" onclick="switchTab('edit')">✏️ 修改已有商品</button>
-                <button class="tab-btn" onclick="switchTab('delete')">✕ 下架/删除商品</button>
+                <button class="tab-btn active" onclick="switchTab('add', event)">➕ 添加新商品</button>
+                <button class="tab-btn" onclick="switchTab('edit', event)">✏️ 修改已有商品</button>
+                <button class="tab-btn" onclick="switchTab('delete', event)">✕ 下架/删除商品</button>
             </div>
 
             <div id="section-form" class="panel-section active">
@@ -178,14 +177,12 @@
             </div>
         </div>
         
-        <!-- 🌍 客户大厅 -->
         <div id="client-display-section">
             <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
             <div class="template-grid" id="view-container"></div>
         </div>
     </div>
 
-    <!-- ✂️ 纯原生免插件图片裁剪弹窗 -->
     <div id="crop-modal">
         <div class="crop-container">
             <div class="crop-title">📐 调整正方形截取范围</div>
@@ -262,7 +259,7 @@
                 if(localStorage.getItem('gh_tk')) {
                     document.getElementById('secure-token').value = localStorage.getItem('gh_tk');
                 }
-                switchTab('add'); 
+                switchTab('add', null); 
                 alert("进入安全编辑模式。");
             } else if (pass !== null) { alert("密码错误！"); }
         }
@@ -397,7 +394,7 @@
             document.getElementById('prod-img').value = "";
         }
 
-        // 🧠 核心控制：强制根据标签页类型显示或彻底隐藏大厅商品
+        // 🧠 强力隐藏大厅节点
         function adjustDisplayByTab() {
             const clientSection = document.getElementById('client-display-section');
             if (currentTab === 'add') {
@@ -407,10 +404,10 @@
             }
         }
 
-        function switchTab(tabName) {
+        function switchTab(tabName, event) {
             currentTab = tabName;
             exitEditMode(); 
-            adjustDisplayByTab(); // 🧠 每次点击Tab按钮都强制刷新隐藏/显示状态
+            adjustDisplayByTab(); 
             
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             if(event && event.target && event.target.classList.contains('tab-btn')) {
@@ -474,7 +471,7 @@
                     if (currentBase64Img) productList[index].image = currentBase64Img;
                 }
                 alert("✏️ 商品修改并重新精算成功！已更新到临时列表。");
-                switchTab('edit'); 
+                switchTab('edit', null); 
             }
             
             clearInputs();
@@ -523,8 +520,20 @@
             }
         }
 
+        // 🧠 大厅渲染函数死锁改法：
         function renderAll() {
             const container = document.getElementById('view-container');
+            const clientSection = document.getElementById('client-display-section');
+            
+            // 🔒 如果当前处于添加新商品页面，一律将大厅内容完全清空并对容器应用隐藏属性，双重保护！
+            if (currentTab === 'add') {
+                container.innerHTML = "";
+                clientSection.style.display = 'none';
+                return; // 直接终止大厅渲染，绝不执行下面任何生成卡片的操作
+            }
+            
+            // 如果不是添加状态，正常展现大厅：
+            clientSection.style.display = 'block';
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
             
             productList.forEach((prod, index) => {
@@ -581,7 +590,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Fix tab navigation client view toggle bug", content: base64Content };
+            const bodyData = { message: "Ultimate source lock for view container added", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -593,7 +602,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！现在添加商品时下方的大厅会百分百彻底隐藏了！");
+                    alert("⚡ 云端同步成功！现在添加商品时下方大厅彻底安全隐藏！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
