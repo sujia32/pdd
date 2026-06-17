@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拼豆定制作品选款与价格公示表</title>
+    <title>敲豆价格表</title>
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
+        /* 🤫 删除了原有的右上角绝对定位按钮样式，保持头部完全干净清爽 */
         header { background: linear-gradient(135deg, #ff6b81, #ee5253); color: white; padding: 25px 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
-        h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+        
+        /* 🎯 给大标题加了一个手势指针（可选），让你知道这里是暗号触发点 */
+        h1 { margin: 0; font-size: 22px; letter-spacing: 1px; cursor: pointer; user-select: none; -webkit-user-select: none; }
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         
         .notice-box { 
@@ -24,15 +27,11 @@
         }
         .notice-line { display: flex; align-items: center; gap: 6px; }
 
-        .admin-login-btn { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-        .admin-login-btn:hover { background: rgba(255,255,255,0.4); }
         .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
         
-        /* 🛠️ 新版后台大面板 */
         #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #ee5253; }
         .admin-title { font-size: 16px; font-weight: bold; color: #ee5253; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* 功能标签切换栏 */
         .tab-group { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .tab-btn { padding: 8px 16px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
         .tab-btn.active { background: #ee5253; color: white; border-color: #ee5253; }
@@ -50,13 +49,14 @@
         .btn-sync { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; padding: 10px 20px; font-size: 15px; }
         .btn-edit-inline { background-color: #30a1ff; color: white; border: none; cursor: pointer; font-weight: bold; padding: 6px; font-size: 12px; width: 100%; border-radius: 4px; margin-top: 5px; }
         
-        /* 🛒 基础卡片流 */
         .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
         @media (min-width: 600px) { .template-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; } }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12 rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
         .card:hover { transform: translateY(-3px); }
         .img-wrapper { width: 100%; aspect-ratio: 1 / 1; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         .img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .number-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; font-size: 11px; font-weight: bold; border-radius: 20px; z-index: 5; letter-spacing: 0.5px; backdrop-filter: blur(2px); }
         .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
         .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
         .card-size { font-size: 12px; color: #888; margin-top: 2px; margin-bottom: 4px; }
@@ -68,29 +68,24 @@
         .price-value.no-beads { color: #ffa502; font-size: 15px; }
         .price-value::before { content: "￥"; font-size: 11px; }
         
-        /* ✕ 删除按钮单独控制 */
         .btn-delete { display: none; position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
-        
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>✨ 敲豆模板价格表 ✨</h1>
+        <h1 onclick="triggerSecretAdmin()">✨ 敲豆模板价格表 ✨</h1>
         <div class="subtitle">挑选好喜欢的款式，直接截图发给客服沟通制作哦</div>
         
         <div class="notice-box">
             <div class="notice-line">⚪ <b>无豆子版本：</b> 只有底板</div>
             <div class="notice-line">🟢 <b>有豆子版本：</b> 底板 + 豆子 + 锤子 + 取豆器</div>
         </div>
-
-        <button class="admin-login-btn" onclick="loginAdmin()">⚙️ 商家后台</button>
     </header>
 
     <div class="container">
-        <!-- 🛠️ 终极多功能商家后台 -->
         <div id="admin-panel">
             <div class="admin-title">
                 <span>🛠️ 拼豆后台云管理系统</span>
@@ -100,18 +95,16 @@
             <div class="form-group" style="margin-bottom: 15px;"><label style="color:#ff4757;">🔑 安全验证：首次使用请粘贴您的 GitHub Token</label>
             <input type="password" id="secure-token" placeholder="代码中无痕迹，自动记忆保护"></div>
 
-            <!-- 切换标签栏 -->
             <div class="tab-group">
                 <button class="tab-btn active" onclick="switchTab('add')">➕ 添加新商品</button>
                 <button class="tab-btn" onclick="switchTab('edit')">✏️ 修改已有商品</button>
                 <button class="tab-btn" onclick="switchTab('delete')">✕ 下架/删除商品</button>
             </div>
 
-            <!-- 1. 添加/修改输入核心表单 -->
             <div id="section-form" class="panel-section active">
-                <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中，修改完记得点击下方的“确认修改”按钮</div>
+                <div id="edit-mode-indicator" class="edit-hint">⚠️ 当前处于【编辑商品模式】中</div>
                 <div class="form-grid">
-                    <div class="form-group"><label>1. 作品图片 (不重新选则保持原图)</label><input type="file" id="prod-img" accept="image/*"></div>
+                    <div class="form-group"><label>1. 作品图片</label><input type="file" id="prod-img" accept="image/*"></div>
                     <div class="form-group"><label>2. 作品名称</label><input type="text" id="prod-name" placeholder="如：卡比挂件"></div>
                     <div class="form-group"><label>3. 成型尺寸</label><input type="text" id="prod-size" placeholder="如：8x8 cm"></div>
                     <div class="form-group"><label>4. 无豆子价格 (元)</label><input type="number" id="prod-price-no" placeholder="0.00" step="0.01"></div>
@@ -123,22 +116,20 @@
                 </div>
             </div>
 
-            <!-- 2. 二级预览区（专门存放修改和删除的预览） -->
             <div id="section-preview" class="panel-section">
                 <div style="font-size:13px; color:#666; margin-bottom:10px;" id="preview-title-hint">请在下方选择商品进行操作：</div>
                 <div class="template-grid" id="admin-preview-container"></div>
             </div>
         </div>
         
-        <!-- 🌍 真正给全网客户展示的总大厅 -->
         <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px; color: #ee5253; border-left: 4px solid #ee5253; padding-left: 8px;">🛒 所有商品展示</div>
         <div class="template-grid" id="view-container"></div>
     </div>
 
     <script>
-        const ADMIN_PASSWORD = "123";               // 你的网页登录密码
-        const GITHUB_USER  = "sujia32";             // 你的 GitHub 用户名
-        const GITHUB_REPO  = "pdd";                  // 你的 仓库名字
+        const ADMIN_PASSWORD = "404832";               
+        const GITHUB_USER  = "sujia32";             
+        const GITHUB_REPO  = "pdd";                  
         const FILE_PATH = "data.json"; 
 
         let productList = [];
@@ -146,10 +137,28 @@
         let isAdminMode = false;
         let fileSha = "";
         
-        let currentTab = 'add'; // 当前处于哪个后台功能标签
-        let editingProductId = null; // 正在修改的商品ID
+        let currentTab = 'add'; 
+        let editingProductId = null; 
+
+        // 🤫 计数器：记录用户连续点击标题的次数
+        let clickCount = 0;
+        let clickTimer = null;
 
         window.onload = loadDataFromCloud;
+
+        // 🤫 暗号核心逻辑：5下连击才会弹出密码输入框
+        function triggerSecretAdmin() {
+            clickCount++;
+            clearTimeout(clickTimer);
+            
+            // 如果 2 秒内没点完，计数清零（防止客户无意中慢慢悠悠点够次数）
+            clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+
+            if (clickCount === 5) {
+                clickCount = 0; // 触发后清零
+                loginAdmin();
+            }
+        }
 
         async function loadDataFromCloud() {
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
@@ -166,25 +175,33 @@
         }
 
         function loginAdmin() {
-            const pass = prompt("请输入商家管理密码：");
+            const pass = prompt("🔑 暗号正确！请输入商家管理密码：");
             if (pass === ADMIN_PASSWORD) {
                 isAdminMode = true;
                 document.getElementById('admin-panel').style.display = 'block';
                 if(localStorage.getItem('gh_tk')) {
                     document.getElementById('secure-token').value = localStorage.getItem('gh_tk');
                 }
-                switchTab('add'); // 登录默认进入添加模式
+                switchTab('add'); 
+                alert("进入安全编辑模式。");
             } else if (pass !== null) { alert("密码错误！"); }
         }
 
-        // 核心标签功能切换器
         function switchTab(tabName) {
             currentTab = tabName;
-            exitEditMode(); // 切换功能时自动清空编辑状态
+            exitEditMode(); 
             
-            // 切换高亮按钮
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            // 兼容点击触发或代码触发的事件源高亮
+            if(event && event.target && event.target.classList.contains('tab-btn')) {
+                event.target.classList.add('active');
+            } else {
+                // 如果是强制代码切换，手动给第一个高亮
+                const btns = document.querySelectorAll('.tab-btn');
+                if(tabName === 'add') btns[0].classList.add('active');
+                if(tabName === 'edit') btns[1].classList.add('active');
+                if(tabName === 'delete') btns[2].classList.add('active');
+            }
 
             const sectionForm = document.getElementById('section-form');
             const sectionPreview = document.getElementById('section-preview');
@@ -214,7 +231,6 @@
             reader.readAsDataURL(file);
         });
 
-        // 处理添加和修改的确定点击
         function handleSubmit() {
             const name = document.getElementById('prod-name').value.trim();
             const size = document.getElementById('prod-size').value.trim();
@@ -224,35 +240,30 @@
             if (!name || !size || !priceNo || !priceHas) { alert("请填齐文字和价格信息！"); return; }
 
             if (editingProductId === null) {
-                // 1. 【新增模式】
                 if (!currentBase64Img) { alert("请上传一张作品图片！"); return; }
                 productList.push({ 
                     id: Date.now(), name: name, size: size, 
                     priceNo: parseFloat(priceNo).toFixed(2), priceHas: parseFloat(priceHas).toFixed(2), 
                     image: currentBase64Img 
                 });
-                alert("🎉 已成功添加到下方客户展厅（临时），可以继续添加，最后记得点右上角【绿色同步按钮】发给GitHub！");
+                alert("🎉 已成功添加到临时列表。");
             } else {
-                // 2. 【编辑修改模式】
                 const index = productList.findIndex(item => item.id === editingProductId);
                 if (index !== -1) {
                     productList[index].name = name;
                     productList[index].size = size;
                     productList[index].priceNo = parseFloat(priceNo).toFixed(2);
                     productList[index].priceHas = parseFloat(priceHas).toFixed(2);
-                    if (currentBase64Img) {
-                        productList[index].image = currentBase64Img; // 如果重新选了图就换图，没选就用原图
-                    }
+                    if (currentBase64Img) productList[index].image = currentBase64Img;
                 }
                 alert("✏️ 商品修改成功！已更新到临时列表。");
-                switchTab('edit'); // 返回修改预览列表
+                switchTab('edit'); 
             }
             
             clearInputs();
             renderAll();
         }
 
-        // 点击商品下的修改，进入编辑状态
         function startEditProduct(id) {
             const prod = productList.find(item => item.id === id);
             if (!prod) return;
@@ -264,12 +275,11 @@
             document.getElementById('cancel-btn').style.display = "inline-block";
             document.getElementById('submit-btn').innerHTML = "⚙️ 确认修改该商品信息";
 
-            // 反填数据
             document.getElementById('prod-name').value = prod.name;
             document.getElementById('prod-size').value = prod.size;
             document.getElementById('prod-price-no').value = prod.priceNo;
             document.getElementById('prod-price-has').value = prod.priceHas;
-            currentBase64Img = ""; // 图片置空，如果不选新图就用老的
+            currentBase64Img = ""; 
         }
 
         function exitEditMode() {
@@ -292,23 +302,22 @@
             if(confirm("确定要下架删除这个拼豆商品吗？")) {
                 productList = productList.filter(item => item.id !== id);
                 renderAll();
-                renderAdminPreview();
+                renderAdminPreview(); 
             }
         }
 
-        // 渲染大厅和后台预览
         function renderAll() {
-            // 渲染全网公开大厅
             const container = document.getElementById('view-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无定制款式展示，请联系店主咨询 ✨</div>' : "";
             
-            productList.forEach(prod => {
+            productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
                 const displayNo = prod.priceNo ? prod.priceNo : "0.00";
 
                 card.innerHTML = `
+                    <div class="number-badge">No.${index + 1}</div>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
                     <div class="card-info">
                         <h3 class="card-name">${prod.name}</h3>
@@ -322,18 +331,18 @@
             });
         }
 
-        // 专门渲染后台的“修改/删除”专属预览区
         function renderAdminPreview() {
             const container = document.getElementById('admin-preview-container');
             container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品可供管理 ✨</div>' : "";
             
-            productList.forEach(prod => {
+            productList.forEach((prod, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 const displayHas = prod.priceHas ? prod.priceHas : (prod.price || "0.00");
                 const displayNo = prod.priceNo ? prod.priceNo : "0.00";
 
                 card.innerHTML = `
+                    <div class="number-badge">No.${index + 1}</div>
                     <button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button>
                     <div class="img-wrapper"><img src="${prod.image}"></div>
                     <div class="card-info">
@@ -357,7 +366,7 @@
             const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
             const jsonString = JSON.stringify(productList);
             const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-            const bodyData = { message: "Advanced ERP multi-mode update", content: base64Content };
+            const bodyData = { message: "Update with hidden stealth click triggers", content: base64Content };
             if (fileSha) bodyData.sha = fileSha;
 
             try {
@@ -369,7 +378,7 @@
                 if (response.status === 200 || response.status === 201) {
                     let resJson = await response.json();
                     fileSha = resJson.content.sha;
-                    alert("⚡ 云端同步成功！所有的【新增/修改/删除】均已同步到GitHub！\n\n等一小会儿全网链接就会彻底刷新！");
+                    alert("⚡ 云端同步成功！完美的隐形管理后台已部署！");
                 } else { alert("保存失败！请检查 Token 是否有效。"); }
             } catch (e) { alert("云端同步故障: " + e.message); }
         }
