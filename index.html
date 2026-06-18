@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>拼豆定制作品选款与价格公示表</title>
+    <title>敲豆价格表</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, sans-serif; background-color: #f5f7fa; color: #333; }
@@ -12,7 +12,8 @@
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         .notice-box { display: inline-block; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 8px 16px; font-size: 13px; text-align: left; line-height: 1.6; margin: 5px auto 0 auto; max-width: 400px; }
         .notice-line { display: flex; align-items: center; gap: 6px; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
+        /* 📱 容器最大宽度调大到 1400px，给电脑端 6 列留出足够的舒展空间 */
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
         #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #ee5253; }
         .admin-title { font-size: 16px; font-weight: bold; color: #ee5253; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .tab-group { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
@@ -28,23 +29,34 @@
         .btn-add { background-color: #ee5253; color: white; border: none; cursor: pointer; font-weight: bold; }
         .btn-sync { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; padding: 10px 20px; font-size: 15px; }
         .btn-edit-inline { background-color: #30a1ff; color: white; border: none; cursor: pointer; font-weight: bold; padding: 6px; font-size: 12px; width: 100%; border-radius: 4px; margin-top: 5px; }
-        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
-        @media (min-width: 600px) { .template-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; } }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; min-height: 330px; }
+        
+        /* 📱 手机端默认：一行放 2 个（卡片大小正合适） */
+        .template-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        
+        /* 💻 电脑端超级进化：当屏幕宽度大于 1024px 时，雷打不动强制一行展示 6 个 */
+        @media (min-width: 1024px) { 
+            .template-grid { grid-template-columns: repeat(6, 1fr); gap: 15px; } 
+        }
+
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; min-height: 280px; }
         .card:hover { transform: translateY(-3px); }
-        .img-wrapper { width: 100%; height: 220px; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        
+        /* 📐 缩减了电脑端卡片内图片的高度，让 6 列排版时比例更协调、更精致 */
+        .img-wrapper { width: 100%; height: 160px; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        @media (min-width: 600px) { .img-wrapper { height: 180px; } }
+        
         .img-wrapper img { width: 100%; height: 100%; object-fit: contain; display: block; } 
         .number-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; font-size: 11px; font-weight: bold; border-radius: 20px; z-index: 5; backdrop-filter: blur(2px); }
-        .card-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; z-index: 3; }
-        .card-name { font-size: 15px; font-weight: bold; color: #222; margin: 0; }
-        .card-size { font-size: 12px; color: #888; margin-top: 2px; margin-bottom: 4px; }
-        .price-container { display: flex; flex-direction: column; gap: 4px; margin-top: auto; padding-top: 8px; border-top: 1px solid #f6f6f6; font-size: 13px; }
+        .card-info { padding: 10px; flex-grow: 1; display: flex; flex-direction: column; gap: 4px; z-index: 3; }
+        .card-name { font-size: 14px; font-weight: bold; color: #222; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-size { font-size: 11px; color: #888; margin-top: 2px; margin-bottom: 4px; }
+        .price-container { display: flex; flex-direction: column; gap: 2px; margin-top: auto; padding-top: 6px; border-top: 1px solid #f6f6f6; font-size: 12px; }
         .price-line { display: flex; justify-content: space-between; align-items: center; }
-        .price-label { color: #666; }
+        .price-label { color: #777; }
         .price-value { font-weight: bold; }
-        .price-value.has-beads { color: #ff4757; font-size: 16px; }
-        .price-value.no-beads { color: #ffa502; font-size: 15px; }
-        .price-value::before { content: "￥"; font-size: 11px; }
+        .price-value.has-beads { color: #ff4757; font-size: 14px; }
+        .price-value.no-beads { color: #ffa502; font-size: 13px; }
+        .price-value::before { content: "￥"; font-size: 10px; }
         .btn-delete { display: none; position: absolute; top: 8px; right: 8px; background: rgba(220, 53, 69, 0.9); color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .no-data { text-align: center; color: #999; padding: 40px 0; grid-column: 1 / -1; font-size: 15px; }
         .edit-hint { background: #e3f2fd; color: #0d47a1; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; font-weight: bold; display: none; }
@@ -55,7 +67,6 @@
         .crop-actions { display: flex; justify-content: space-between; gap: 12px; }
         .crop-btn-cancel { background: #6c757d; color: white; border: none; padding: 12px 0; width: 48%; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
         .crop-btn-confirm { background: #28a745; color: white; border: none; padding: 12px 0; width: 48%; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        /* ⏳ 骨架屏加载动画，提升秒开体验 */
         .skeleton { background: linear-gradient(90deg, #f2f2f2 25%, #e6e6e6 37%, #f2f2f2 63%); background-size: 400% 100%; animation: loading 1.4s ease infinite; }
         @keyframes loading { 0% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
     </style>
@@ -125,9 +136,8 @@
         function triggerSecretAdmin() { clickCount++; clearTimeout(clickTimer); clickTimer = setTimeout(() => { clickCount = 0; }, 2000); if (clickCount === 5) { clickCount = 0; loginAdmin(); } }
         
         async function loadDataFromCloud() {
-            // 先渲染几个骨架屏，让手机秒开不白屏
             const container = document.getElementById('view-container');
-            container.innerHTML = Array(4).fill('<div class="card skeleton"></div>').join('');
+            container.innerHTML = Array(6).fill('<div class="card skeleton"></div>').join('');
             
             const rawUrl = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/main/${FILE_PATH}?t=${Date.now()}`;
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}?t=${Date.now()}`;
@@ -152,16 +162,15 @@
         
         function confirmCrop() { 
             if (!cropperInstance) return; 
-            // 🛠️ 核心优化：限制裁剪输出的最大尺寸为 400 像素，大幅降低图片体积
             const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 400, maxHeight: 400, imageSmoothingEnabled: true, imageSmoothingQuality: 'medium' }); 
             if (canvas) { 
-                currentBase64Img = canvas.toDataURL('image/jpeg', 0.7); // 压缩率调到 0.7
+                currentBase64Img = canvas.toDataURL('image/jpeg', 0.7); 
                 cropperInstance.destroy(); cropperInstance = null; 
                 document.getElementById('crop-modal').style.display = 'none'; 
-                alert("✨ 截图成功并已完成高能体积压缩！"); 
+                alert("✨ 截图并智能压缩成功！"); 
             } 
         }
-        function closeCropModal() { if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } document.getElementById('crop-modal').style.display = 'none'; document.getElementById('prod-img').value = ""; }
+        function closeCropModal() { if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } document.getElementById('crop-modal').style.none = 'none'; document.getElementById('prod-img').value = ""; }
         function switchTab(tabName, event) { currentTab = tabName; exitEditMode(); document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); if(event && event.target) { event.target.classList.add('active'); } else { const btns = document.querySelectorAll('.tab-btn'); if(tabName === 'add') btns[0].classList.add('active'); if(tabName === 'edit') btns[1].classList.add('active'); if(tabName === 'delete') btns[2].classList.add('active'); } const sectionForm = document.getElementById('section-form'); const sectionPreview = document.getElementById('section-preview'); const hint = document.getElementById('preview-title-hint'); if (tabName === 'add') { sectionForm.className = "panel-section active"; sectionPreview.className = "panel-section"; document.getElementById('submit-btn').innerHTML = "➕ 确定添加到临时列表"; } else { sectionForm.className = "panel-section"; sectionPreview.className = "panel-section active"; hint.innerHTML = tabName === 'edit' ? "✏️ 点击商品下方的【⚙️ 修改参数】" : "✕ 点击商品右上角的【✕】"; renderAdminPreview(); } }
         function handleSubmit() { const name = document.getElementById('prod-name').value.trim(); const size = document.getElementById('prod-size').value.trim(); const grams = document.getElementById('prod-grams').value.trim(); const beads = document.getElementById('prod-beads-count').value.trim(); if (!name || !size || !grams || !beads) { alert("请填齐文本、尺寸、克数和豆数！"); return; } const calculated = calculatePrices(grams, beads); if (editingProductId === null) { if (!currentBase64Img) { alert("请上传并截取一张商品图片！"); return; } productList.unshift({ id: Date.now(), name: name, size: size, grams: grams, beads: beads, priceNo: calculated.noBeads, priceHas: calculated.hasBeads, image: currentBase64Img }); alert("🎉 已添加到临时列表。"); } else { const index = productList.findIndex(item => item.id === editingProductId); if (index !== -1) { productList[index].name = name; productList[index].size = size; productList[index].grams = grams; productList[index].beads = beads; productList[index].priceNo = calculated.noBeads; productList[index].priceHas = calculated.hasBeads; if (currentBase64Img) productList[index].image = currentBase64Img; } alert("✏️ 修改成功！已更新到临时列表。"); switchTab('edit', null); } clearInputs(); renderAll(); }
         function startEditProduct(id) { const prod = productList.find(item => item.id === id); if (!prod) return; editingProductId = id; document.getElementById('section-form').className = "panel-section active"; document.getElementById('section-preview').className = "panel-section"; document.getElementById('edit-mode-indicator').style.display = "block"; document.getElementById('cancel-btn').style.display = "inline-block"; document.getElementById('submit-btn').innerHTML = "⚙️ 确认修改该商品信息"; document.getElementById('prod-name').value = prod.name; document.getElementById('prod-size').value = prod.size; document.getElementById('prod-grams').value = prod.grams || ""; document.getElementById('prod-beads-count').value = prod.beads || ""; currentBase64Img = ""; }
@@ -175,14 +184,13 @@
             productList.forEach((prod, index) => { 
                 const card = document.createElement('div'); 
                 card.className = 'card'; 
-                const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : ""; 
-                // ⚡ 开启浏览器原生 lazyload 懒加载防卡顿
-                card.innerHTML = `<div class="number-badge">No.${index + 1}</div><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name">${prod.name}</h3><div class="card-size">📏 尺寸：${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆子版本</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆子版本</span><span class="price-value has-beads">${prod.priceHas}</span></div></div></div>`; 
+                const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(${prod.beads}颗)</span>` : ""; 
+                card.innerHTML = `<div class="number-badge">No.${index + 1}</div><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name" title="${prod.name}">${prod.name}</h3><div class="card-size">📏 ${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆</span><span class="price-value has-beads">${prod.priceHas}</span></div></div></div>`; 
                 container.appendChild(card); 
             }); 
         }
-        function renderAdminPreview() { const container = document.getElementById('admin-preview-container'); container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品 ✨</div>' : ""; productList.forEach((prod, index) => { const card = document.createElement('div'); card.className = 'card'; const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(共 ${prod.beads} 颗豆)</span>` : ""; card.innerHTML = `<div class="number-badge">No.${index + 1}</div><button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name">${prod.name}</h3><div class="card-size">📏 尺寸：${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆 (${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆 (${prod.beads || 0}颗)</span><span class="price-value has-beads">${prod.priceHas}</span></div></div>${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 修改参数</button>` : ''}</div>`; container.appendChild(card); }); }
-        async function saveToGitHub() { const userToken = document.getElementById('secure-token').value.trim(); if(!userToken) { alert("请填入 GitHub Token！"); return; } localStorage.setItem('gh_tk', userToken); const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`; const jsonString = JSON.stringify(productList); const base64Content = btoa(unescape(encodeURIComponent(jsonString))); const bodyData = { message: "Sync compressed data", content: base64Content }; if (fileSha) bodyData.sha = fileSha; try { let response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${userToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); if (response.status === 200 || response.status === 201) { let resJson = await response.json(); fileSha = resJson.content.sha; alert("⚡ 云端压缩同步成功！"); } else { alert("保存失败！"); } } catch (e) { alert("同步故障: " + e.message); } }
+        function renderAdminPreview() { const container = document.getElementById('admin-preview-container'); container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品 ✨</div>' : ""; productList.forEach((prod, index) => { const card = document.createElement('div'); card.className = 'card'; const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(${prod.beads}颗)</span>` : ""; card.innerHTML = `<div class="number-badge">No.${index + 1}</div><button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name" title="${prod.name}">${prod.name}</h3><div class="card-size">📏 ${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆 (${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆</span><span class="price-value has-beads">${prod.priceHas}</span></div></div>${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 修改参数</button>` : ''}</div>`; container.appendChild(card); }); }
+        async function saveToGitHub() { const userToken = document.getElementById('secure-token').value.trim(); if(!userToken) { alert("请填入 GitHub Token！"); return; } localStorage.setItem('gh_tk', userToken); const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`; const jsonString = JSON.stringify(productList); const base64Content = btoa(unescape(encodeURIComponent(jsonString))); const bodyData = { message: "Sync 6-columns layout data", content: base64Content }; if (fileSha) bodyData.sha = fileSha; try { let response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${userToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); if (response.status === 200 || response.status === 201) { let resJson = await response.json(); fileSha = resJson.content.sha; alert("⚡ 云端同步成功！电脑端已锁定 1 行 6 列排版！"); } else { alert("保存失败！"); } } catch (e) { alert("同步故障: " + e.message); } }
     </script>
 </body>
 </html>
