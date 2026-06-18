@@ -12,9 +12,11 @@
         .subtitle { font-size: 13px; opacity: 0.9; margin-top: 6px; margin-bottom: 12px; }
         .notice-box { display: inline-block; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 8px 16px; font-size: 13px; text-align: left; line-height: 1.6; margin: 5px auto 0 auto; max-width: 400px; }
         .notice-line { display: flex; align-items: center; gap: 6px; }
-        /* 📱 容器最大宽度调大到 1400px，给电脑端 6 列留出足够的舒展空间 */
-        .container { max-width: 1400px; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
-        #admin-panel { display: none; background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #ee5253; }
+        
+        /* 🔓 彻底解放电脑端宽度！允许页面撑开到 95%，给 6 列排版提供巨量空间 */
+        .container { max-width: 95%; margin: 20px auto; padding: 0 15px; box-sizing: border-box; }
+        
+        #admin-panel { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 2px solid #ee5253; display: none; }
         .admin-title { font-size: 16px; font-weight: bold; color: #ee5253; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
         .tab-group { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
         .tab-btn { padding: 8px 16px; border: 1px solid #ddd; background: #f8f9fa; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
@@ -30,20 +32,20 @@
         .btn-sync { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; padding: 10px 20px; font-size: 15px; }
         .btn-edit-inline { background-color: #30a1ff; color: white; border: none; cursor: pointer; font-weight: bold; padding: 6px; font-size: 12px; width: 100%; border-radius: 4px; margin-top: 5px; }
         
-        /* 📱 手机端默认：一行放 2 个（卡片大小正合适） */
+        /* 📱 手机端：依然保持精致的 1 行 2 个 */
         .template-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         
-        /* 💻 电脑端超级进化：当屏幕宽度大于 1024px 时，雷打不动强制一行展示 6 个 */
-        @media (min-width: 1024px) { 
-            .template-grid { grid-template-columns: repeat(6, 1fr); gap: 15px; } 
+        /* 💻 电脑端：当屏幕宽度大于 900px 时，强制锁定 1 行 6 个，寸土必争！ */
+        @media (min-width: 900px) { 
+            .template-grid { grid-template-columns: repeat(6, 1fr) !important; gap: 15px; } 
         }
 
         .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; min-height: 280px; }
         .card:hover { transform: translateY(-3px); }
         
-        /* 📐 缩减了电脑端卡片内图片的高度，让 6 列排版时比例更协调、更精致 */
-        .img-wrapper { width: 100%; height: 160px; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
-        @media (min-width: 600px) { .img-wrapper { height: 180px; } }
+        /* 📐 优化 6 列卡片的图片高度，比例非常完美好看 */
+        .img-wrapper { width: 100%; height: 150px; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        @media (min-width: 600px) { .img-wrapper { height: 170px; } }
         
         .img-wrapper img { width: 100%; height: 100%; object-fit: contain; display: block; } 
         .number-badge { position: absolute; top: 8px; left: 8px; background: rgba(0, 0, 0, 0.6); color: white; padding: 3px 8px; font-size: 11px; font-weight: bold; border-radius: 20px; z-index: 5; backdrop-filter: blur(2px); }
@@ -156,7 +158,7 @@
         }
 
         function loginAdmin() { const pass = prompt("🔑 请输入商家管理密码："); if (pass === ADMIN_PASSWORD) { isAdminMode = true; document.getElementById('admin-panel').style.display = 'block'; if(localStorage.getItem('gh_tk')) { document.getElementById('secure-token').value = localStorage.getItem('gh_tk'); } switchTab('add', null); } else if (pass !== null) { alert("密码错误！"); } }
-        function calculatePrices(grams, beads) { grams = parseFloat(grams) || 0; beads = parseInt(beads) || 0; let baseNoBeads = grams * 0.1 + 2 + 0.3; let noBeadsFinal = 0; let noBeadsStr = baseNoBeads.toFixed(4); let dotIdx1 = noBeadsStr.indexOf('.'); let firstDecimalDigit1 = parseInt(noBeadsStr.charAt(dotIdx1 + 1)); if (firstDecimalDigit1 >= 1 && firstDecimalDigit1 <= 4) { noBeadsFinal = Math.floor(baseNoBeads) + 1; } else { noBeadsFinal = Math.ceil(baseNoBeads) + 0.5; } let baseHasBeads = noBeadsFinal + beads * 0.5 * 0.08; let hasBeadsFinal = 0; let hasBeadsStr = baseHasBeads.toFixed(4); let dotIdx2 = hasBeadsStr.indexOf('.'); let firstDecimalDigit2 = parseInt(hasBeadsStr.charAt(dotIdx2 + 1)); if (firstDecimalDigit2 >= 1 && firstDecimalDigit2 <= 4) { hasBeadsFinal = Math.floor(baseHasBeads); } else { hasBeadsFinal = Math.ceil(baseHasBeads) - 0.5; } return { noBeads: noBeadsFinal.toFixed(2), hasBeads: hasBeadsFinal.toFixed(2) }; }
+        function calculatePrices(grams, beads) { grams = parseFloat(grams) || 0; beads = parseInt(beads) || 0; let baseNoBeads = grams * 0.1 + 2 + 0.3; let noBeadsFinal = 0; let noBeadsStr = baseNoBeads.toFixed(4); let dotIdx1 = noBeadsStr.indexOf('.'); let firstDecimalDigit1 = parseInt(noBeadsStr.charAt(dotIdx1 + 1)); if (firstDecimalDigit1 >= 1 && firstDecimalDigit1 <= 4) { noBeadsFinal = Math.floor(baseNoBeads) + 1; } else { noBeadsFinal = Math.ceil(baseNoBeads) + 0.5; } let baseHasBeads = noBeadsFinal + beads * 0.5 * 0.08; let hasBeadsFinal = 0; let hasHasStr = baseHasBeads.toFixed(4); let dotIdx2 = hasHasStr.indexOf('.'); let firstDecimalDigit2 = parseInt(hasHasStr.charAt(dotIdx2 + 1)); if (firstDecimalDigit2 >= 1 && firstDecimalDigit2 <= 4) { hasBeadsFinal = Math.floor(baseHasBeads); } else { hasBeadsFinal = Math.ceil(baseHasBeads) - 0.5; } return { noBeads: noBeadsFinal.toFixed(2), hasBeads: hasBeadsFinal.toFixed(2) }; }
         
         document.getElementById('prod-img').addEventListener('change', function(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(event) { const img = document.getElementById('crop-target-img'); if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } img.src = event.target.result; document.getElementById('crop-modal').style.display = 'flex'; cropperInstance = new Cropper(img, { aspectRatio: null, viewMode: 1, dragMode: 'move', autoCropArea: 0.8 }); }; reader.readAsDataURL(file); });
         
@@ -170,7 +172,7 @@
                 alert("✨ 截图并智能压缩成功！"); 
             } 
         }
-        function closeCropModal() { if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } document.getElementById('crop-modal').style.none = 'none'; document.getElementById('prod-img').value = ""; }
+        function closeCropModal() { if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; } document.getElementById('crop-modal').style.display = 'none'; document.getElementById('prod-img').value = ""; }
         function switchTab(tabName, event) { currentTab = tabName; exitEditMode(); document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); if(event && event.target) { event.target.classList.add('active'); } else { const btns = document.querySelectorAll('.tab-btn'); if(tabName === 'add') btns[0].classList.add('active'); if(tabName === 'edit') btns[1].classList.add('active'); if(tabName === 'delete') btns[2].classList.add('active'); } const sectionForm = document.getElementById('section-form'); const sectionPreview = document.getElementById('section-preview'); const hint = document.getElementById('preview-title-hint'); if (tabName === 'add') { sectionForm.className = "panel-section active"; sectionPreview.className = "panel-section"; document.getElementById('submit-btn').innerHTML = "➕ 确定添加到临时列表"; } else { sectionForm.className = "panel-section"; sectionPreview.className = "panel-section active"; hint.innerHTML = tabName === 'edit' ? "✏️ 点击商品下方的【⚙️ 修改参数】" : "✕ 点击商品右上角的【✕】"; renderAdminPreview(); } }
         function handleSubmit() { const name = document.getElementById('prod-name').value.trim(); const size = document.getElementById('prod-size').value.trim(); const grams = document.getElementById('prod-grams').value.trim(); const beads = document.getElementById('prod-beads-count').value.trim(); if (!name || !size || !grams || !beads) { alert("请填齐文本、尺寸、克数和豆数！"); return; } const calculated = calculatePrices(grams, beads); if (editingProductId === null) { if (!currentBase64Img) { alert("请上传并截取一张商品图片！"); return; } productList.unshift({ id: Date.now(), name: name, size: size, grams: grams, beads: beads, priceNo: calculated.noBeads, priceHas: calculated.hasBeads, image: currentBase64Img }); alert("🎉 已添加到临时列表。"); } else { const index = productList.findIndex(item => item.id === editingProductId); if (index !== -1) { productList[index].name = name; productList[index].size = size; productList[index].grams = grams; productList[index].beads = beads; productList[index].priceNo = calculated.noBeads; productList[index].priceHas = calculated.hasBeads; if (currentBase64Img) productList[index].image = currentBase64Img; } alert("✏️ 修改成功！已更新到临时列表。"); switchTab('edit', null); } clearInputs(); renderAll(); }
         function startEditProduct(id) { const prod = productList.find(item => item.id === id); if (!prod) return; editingProductId = id; document.getElementById('section-form').className = "panel-section active"; document.getElementById('section-preview').className = "panel-section"; document.getElementById('edit-mode-indicator').style.display = "block"; document.getElementById('cancel-btn').style.display = "inline-block"; document.getElementById('submit-btn').innerHTML = "⚙️ 确认修改该商品信息"; document.getElementById('prod-name').value = prod.name; document.getElementById('prod-size').value = prod.size; document.getElementById('prod-grams').value = prod.grams || ""; document.getElementById('prod-beads-count').value = prod.beads || ""; currentBase64Img = ""; }
@@ -190,7 +192,7 @@
             }); 
         }
         function renderAdminPreview() { const container = document.getElementById('admin-preview-container'); container.innerHTML = productList.length === 0 ? '<div class="no-data">✨ 暂无商品 ✨</div>' : ""; productList.forEach((prod, index) => { const card = document.createElement('div'); card.className = 'card'; const beadsText = prod.beads ? ` <span style="color:#ee5253; font-weight:normal;">(${prod.beads}颗)</span>` : ""; card.innerHTML = `<div class="number-badge">No.${index + 1}</div><button class="btn-delete" style="display: ${currentTab === 'delete' ? 'flex' : 'none'};" onclick="deleteProduct(${prod.id})">✕</button><div class="img-wrapper"><img src="${prod.image}" loading="lazy"></div><div class="card-info"><h3 class="card-name" title="${prod.name}">${prod.name}</h3><div class="card-size">📏 ${prod.size}${beadsText}</div><div class="price-container"><div class="price-line"><span class="price-label">⚪ 无豆 (${prod.grams || 0}g)</span><span class="price-value no-beads">${prod.priceNo}</span></div><div class="price-line"><span class="price-label">🟢 有豆</span><span class="price-value has-beads">${prod.priceHas}</span></div></div>${currentTab === 'edit' ? `<button class="btn-edit-inline" onclick="startEditProduct(${prod.id})">⚙️ 修改参数</button>` : ''}</div>`; container.appendChild(card); }); }
-        async function saveToGitHub() { const userToken = document.getElementById('secure-token').value.trim(); if(!userToken) { alert("请填入 GitHub Token！"); return; } localStorage.setItem('gh_tk', userToken); const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`; const jsonString = JSON.stringify(productList); const base64Content = btoa(unescape(encodeURIComponent(jsonString))); const bodyData = { message: "Sync 6-columns layout data", content: base64Content }; if (fileSha) bodyData.sha = fileSha; try { let response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${userToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); if (response.status === 200 || response.status === 201) { let resJson = await response.json(); fileSha = resJson.content.sha; alert("⚡ 云端同步成功！电脑端已锁定 1 行 6 列排版！"); } else { alert("保存失败！"); } } catch (e) { alert("同步故障: " + e.message); } }
+        async function saveToGitHub() { const userToken = document.getElementById('secure-token').value.trim(); if(!userToken) { alert("请填入 GitHub Token！"); return; } localStorage.setItem('gh_tk', userToken); const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${FILE_PATH}`; const jsonString = JSON.stringify(productList); const base64Content = btoa(unescape(encodeURIComponent(jsonString))); const bodyData = { message: "Fix 6-columns layout constraint", content: base64Content }; if (fileSha) bodyData.sha = fileSha; try { let response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${userToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) }); if (response.status === 200 || response.status === 201) { let resJson = await response.json(); fileSha = resJson.content.sha; alert("⚡ 云端同步成功！现在电脑端已经是完美的 1 行 6 个了！"); } else { alert("保存失败！"); } } catch (e) { alert("同步故障: " + e.message); } }
     </script>
 </body>
 </html>
